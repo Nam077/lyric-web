@@ -1,0 +1,338 @@
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: transparent;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  z-index: 3000;
+  pointer-events: none;
+}
+
+.container {
+  background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.75));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 24px;
+  width: 360px;
+  max-width: 90vw;
+  max-height: 90vh;
+  color: white;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  animation: slideInRight 0.3s ease-out;
+  overflow-y: auto;
+  margin: 20px;
+  pointer-events: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 12px;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, #26C6DA, #00BCD4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  width: 32px;
+  height: 32px;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  transform: scale(1.1);
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 6px;
+}
+
+.fileGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fileInputWrapper {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fileInputWrapper:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.fileInputWrapper.dragOver {
+  background: rgba(38, 198, 218, 0.1);
+  border-color: #26C6DA;
+  transform: scale(1.02);
+}
+
+.fileInputWrapper.hasFile {
+  background: rgba(76, 175, 80, 0.1);
+  border: 2px solid rgba(76, 175, 80, 0.3);
+}
+
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  width: 100%;
+}
+
+.dropIcon {
+  font-size: 2rem;
+  opacity: 0.7;
+}
+
+.dropText {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dropText span {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.dropHint {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.fileInfo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.fileIcon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.fileDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.fileName {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fileSize {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.removeButton {
+  background: rgba(244, 67, 54, 0.2);
+  border: 1px solid rgba(244, 67, 54, 0.3);
+  color: #f44336;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.removeButton:hover {
+  background: rgba(244, 67, 54, 0.3);
+  transform: scale(1.1);
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancelButton {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.8);
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.cancelButton:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: white;
+}
+
+.uploadButton {
+  background: linear-gradient(135deg, #26C6DA, #00BCD4);
+  border: none;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.uploadButton:hover:not(:disabled) {
+  background: linear-gradient(135deg, #00BCD4, #0097A7);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(38, 198, 218, 0.3);
+}
+
+.uploadButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.shortcuts {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.shortcuts span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.shortcuts kbd {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 0.75rem;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+/* Animations */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .overlay {
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .container {
+    width: 95vw;
+    margin: 10px;
+  }
+  
+  .header h2 {
+    font-size: 1.3rem;
+  }
+  
+  .fileInputWrapper {
+    padding: 12px;
+    min-height: 70px;
+  }
+  
+  .actions {
+    flex-direction: column;
+  }
+  
+  .shortcuts {
+    gap: 8px;
+  }
+}

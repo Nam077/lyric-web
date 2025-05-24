@@ -1,0 +1,17 @@
+#root {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  filter: contrast(1.1) brightness(0.98) saturate(1.15);
+  overflow: hidden;
+}
+
+.App {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  font-family: 'NVNProximaNova', 'Times New Roman', serif;
+}
+
+

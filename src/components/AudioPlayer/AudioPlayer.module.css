@@ -1,0 +1,416 @@
+.audioPlayerContainer {
+  position: relative;
+  width: 100%;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.audioPlayerContainer:hover {
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Hidden Player */
+.hiddenPlayer {
+  display: none;
+}
+
+/* Toggle Button - Hidden (use keyboard shortcuts instead) */
+.toggleButton {
+  display: none; /* Hide the toggle button, use 'P' key instead */
+}
+
+/* Popup Overlay */
+.popupOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  z-index: 2000;
+  animation: fadeIn 0.3s ease-out;
+  padding: 80px 20px 20px 20px;
+}
+
+.popupContainer {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 32px;
+  width: 400px;
+  max-width: 90vw;
+  max-height: calc(100vh - 100px);
+  color: white;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  animation: slideDown 0.3s ease-out;
+  overflow-y: auto;
+}
+
+/* Header */
+.playerHeader {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.songInfo {
+  text-align: center;
+  flex: 1;
+  max-width: calc(100% - 80px); /* Reserve space for close button */
+}
+
+.songInfo h3.songTitle {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, #26C6DA, #00BCD4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.songInfo p.artistName {
+  margin: 4px 0 0 0;
+  font-size: 1rem;
+  opacity: 0.8;
+  font-weight: 500;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* Album Art */
+.albumArt {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.albumPlaceholder {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.6);
+  animation: rotate 10s linear infinite;
+}
+
+/* Progress Bar */
+.progressContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.progressBar {
+  flex: 1;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.progressBuffered {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.progressFilled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: linear-gradient(90deg, #26C6DA, #00ACC1);
+  border-radius: 3px;
+  transition: width 0.1s ease;
+}
+
+.progressThumb {
+  position: absolute;
+  top: -3px;
+  width: 12px;
+  height: 12px;
+  background: white;
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: left 0.1s ease;
+}
+
+.timeDisplay {
+  font-family: 'Neutra', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  min-width: 45px;
+  text-align: center;
+}
+
+/* Player Controls */
+.playerControls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  padding: 16px 0;
+  position: relative;
+}
+
+.playButton {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(145deg, #26C6DA, #00BCD4);
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 
+    0 4px 15px rgba(38, 198, 218, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.playButton:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 
+    0 8px 25px rgba(38, 198, 218, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.playButton:active {
+  transform: translateY(-1px) scale(1.02);
+}
+
+.playButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.playButton.playing {
+  background: linear-gradient(145deg, #FF7043, #FF5722);
+  box-shadow: 
+    0 4px 15px rgba(255, 112, 67, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.playButton.playing:hover {
+  box-shadow: 
+    0 8px 25px rgba(255, 112, 67, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.playIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+/* Volume Control */
+.volumeControl {
+  position: absolute;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+.volumeControl:hover {
+  opacity: 1;
+}
+
+.volumeButton {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.volumeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+.volumeSliderContainer {
+  width: 80px;
+}
+
+.volumeSlider {
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.volumeSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.volumeSlider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: white;
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* Keyboard Shortcuts Info */
+.shortcutsInfo {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 16px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .toggleButton {
+    top: 15px;
+    right: 15px;
+    width: 45px;
+    height: 45px;
+  }
+
+  .popupContainer {
+    padding: 24px;
+    width: 320px;
+  }
+
+  .songInfo h3.songTitle {
+    font-size: 1.25rem;
+  }
+
+  .albumPlaceholder {
+    width: 100px;
+    height: 100px;
+  }
+
+  .playButton {
+    width: 56px;
+    height: 56px;
+  }
+
+  .shortcutsInfo {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .popupContainer {
+    padding: 20px;
+    width: 280px;
+  }
+
+  .volumeSliderContainer {
+    width: 60px;
+  }
+}
