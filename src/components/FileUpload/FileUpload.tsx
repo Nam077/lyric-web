@@ -1,4 +1,8 @@
 import React, { useState, useCallback, useRef } from 'react';
+import { 
+  get, isObject, isFunction, 
+  toNumber, clamp
+} from 'lodash';
 import styles from './FileUpload.module.css';
 
 interface UploadedFiles {
@@ -18,21 +22,35 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesUploaded, onClose }) => 
   const audioInputRef = useRef<HTMLInputElement>(null);
 
   const handleDrop = useCallback((e: React.DragEvent, type: 'lyric' | 'audio') => {
-    e.preventDefault();
+    // Enhanced event safety
+    if (!isObject(e)) return;
+    
+    if (isFunction(get(e, 'preventDefault'))) {
+      e.preventDefault();
+    }
+    
     setIsDragOver(null);
     
-    const droppedFiles = Array.from(e.dataTransfer.files);
-    const file = droppedFiles[0];
+    const dataTransfer = get(e, 'dataTransfer');
+    const filesArray = isObject(dataTransfer) ? get(dataTransfer, 'files') : null;
     
-    if (!file) return;
+    if (!filesArray) return;
     
-    // Validate file type
-    if (type === 'lyric' && !file.name.endsWith('.json')) {
+    const droppedFiles = Array.from(filesArray);
+    const file = get(droppedFiles, '[0]');
+    
+    if (!isObject(file)) return;
+    
+    // Enhanced file validation with lodash safety
+    const fileName = get(file, 'name', '');
+    const fileType = get(file, 'type', '');
+    
+    if (type === 'lyric' && !fileName.endsWith('.json')) {
       alert('Please select a JSON file for lyrics');
       return;
     }
     
-    if (type === 'audio' && !file.type.startsWith('audio/')) {
+    if (type === 'audio' && !fileType.startsWith('audio/')) {
       alert('Please select an audio file (MP3, WAV, M4A)');
       return;
     }
@@ -41,14 +59,25 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesUploaded, onClose }) => 
   }, []);
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>, type: 'lyric' | 'audio') => {
-    const file = e.target.files?.[0];
-    if (file) {
+    // Enhanced event and target safety
+    if (!isObject(e)) return;
+    
+    const target = get(e, 'target');
+    const filesArray = isObject(target) ? get(target, 'files') : null;
+    const file = filesArray && get(filesArray, '[0]');
+    
+    if (isObject(file)) {
       setFiles(prev => ({ ...prev, [type]: file }));
     }
   }, []);
 
   const handleDragOver = useCallback((e: React.DragEvent, type: 'lyric' | 'audio') => {
-    e.preventDefault();
+    if (!isObject(e)) return;
+    
+    if (isFunction(get(e, 'preventDefault'))) {
+      e.preventDefault();
+    }
+    
     setIsDragOver(type);
   }, []);
 
@@ -57,57 +86,130 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesUploaded, onClose }) => 
   }, []);
 
   const handleSubmit = useCallback(() => {
-    if (!files.lyric && !files.audio) {
+    const lyricFile = get(files, 'lyric');
+    const audioFile = get(files, 'audio');
+    
+    if (!lyricFile && !audioFile) {
       alert('Please select at least one file');
       return;
     }
     
-    onFilesUploaded(files);
+    if (isFunction(onFilesUploaded)) {
+      onFilesUploaded(files);
+    }
   }, [files, onFilesUploaded]);
 
   const clearFile = useCallback((type: 'lyric' | 'audio') => {
     setFiles(prev => ({ ...prev, [type]: null }));
-    if (type === 'lyric' && lyricInputRef.current) {
-      lyricInputRef.current.value = '';
+    
+    // Enhanced ref safety
+    if (type === 'lyric') {
+      const lyricInput = get(lyricInputRef, 'current');
+      if (isObject(lyricInput) && 'value' in lyricInput) {
+        lyricInput.value = '';
+      }
     }
-    if (type === 'audio' && audioInputRef.current) {
-      audioInputRef.current.value = '';
+    
+    if (type === 'audio') {
+      const audioInput = get(audioInputRef, 'current');
+      if (isObject(audioInput) && 'value' in audioInput) {
+        audioInput.value = '';
+      }
     }
   }, []);
 
+  // Enhanced safe click handlers
+  const handleLyricInputClick = useCallback(() => {
+    const lyricInput = get(lyricInputRef, 'current');
+    if (isObject(lyricInput) && isFunction(get(lyricInput, 'click'))) {
+      lyricInput.click();
+    }
+  }, []);
+
+  const handleAudioInputClick = useCallback(() => {
+    const audioInput = get(audioInputRef, 'current');
+    if (isObject(audioInput) && isFunction(get(audioInput, 'click'))) {
+      audioInput.click();
+    }
+  }, []);
+
+  // Safe file info extraction
+  const getLyricFileInfo = useCallback(() => {
+    const lyricFile = get(files, 'lyric');
+    if (!isObject(lyricFile)) return null;
+    
+    const name = get(lyricFile, 'name', 'Unknown file');
+    const size = get(lyricFile, 'size', 0);
+    const sizeKB = clamp(toNumber(size) / 1024, 0, Number.MAX_SAFE_INTEGER);
+    
+    return { name, sizeKB: sizeKB.toFixed(1) };
+  }, [files]);
+
+  const getAudioFileInfo = useCallback(() => {
+    const audioFile = get(files, 'audio');
+    if (!isObject(audioFile)) return null;
+    
+    const name = get(audioFile, 'name', 'Unknown file');
+    const size = get(audioFile, 'size', 0);
+    const sizeMB = clamp(toNumber(size) / 1024 / 1024, 0, Number.MAX_SAFE_INTEGER);
+    
+    return { name, sizeMB: sizeMB.toFixed(1) };
+  }, [files]);
+
+  // Safe state checks - fixed
+  const hasLyricFile = !!get(files, 'lyric');
+  const hasAudioFile = !!get(files, 'audio');
+  const isDragOverLyric = isDragOver === 'lyric';
+  const isDragOverAudio = isDragOver === 'audio';
+  const lyricFileInfo = getLyricFileInfo();
+  const audioFileInfo = getAudioFileInfo();
+
   return (
-    <div className={styles.overlay}>
-      <div className={styles.container} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
+    <div className={get(styles, 'overlay', '')}>
+      <div 
+        className={get(styles, 'container', '')} 
+        onClick={(e) => {
+          if (isFunction(get(e, 'stopPropagation'))) {
+            e.stopPropagation();
+          }
+        }}
+      >
+        <div className={get(styles, 'header', '')}>
           <h2>Upload Files</h2>
-          <button className={styles.closeButton} onClick={onClose} title="Close Upload">
+          <button 
+            className={get(styles, 'closeButton', '')} 
+            onClick={onClose} 
+            title="Close Upload"
+          >
             ✕
           </button>
         </div>
 
-        <div className={styles.content}>
+        <div className={get(styles, 'content', '')}>
           {/* Lyric File Section */}
-          <div className={styles.section}>
+          <div className={get(styles, 'section', '')}>
             <h3>Lyric File</h3>
-            <div className={styles.fileGroup}>
+            <div className={get(styles, 'fileGroup', '')}>
               <div 
-                className={`${styles.fileInputWrapper} ${isDragOver === 'lyric' ? styles.dragOver : ''} ${files.lyric ? styles.hasFile : ''}`}
+                className={`${get(styles, 'fileInputWrapper', '')} ${isDragOverLyric ? get(styles, 'dragOver', '') : ''} ${hasLyricFile ? get(styles, 'hasFile', '') : ''}`}
                 onDrop={(e) => handleDrop(e, 'lyric')}
                 onDragOver={(e) => handleDragOver(e, 'lyric')}
                 onDragLeave={handleDragLeave}
-                onClick={() => lyricInputRef.current?.click()}
+                onClick={handleLyricInputClick}
               >
-                {files.lyric ? (
-                  <div className={styles.fileInfo}>
-                    <div className={styles.fileIcon}>📄</div>
-                    <div className={styles.fileDetails}>
-                      <span className={styles.fileName}>{files.lyric.name}</span>
-                      <span className={styles.fileSize}>{(files.lyric.size / 1024).toFixed(1)} KB</span>
+                {hasLyricFile && lyricFileInfo ? (
+                  <div className={get(styles, 'fileInfo', '')}>
+                    <div className={get(styles, 'fileIcon', '')}>📄</div>
+                    <div className={get(styles, 'fileDetails', '')}>
+                      <span className={get(styles, 'fileName', '')}>{lyricFileInfo.name}</span>
+                      <span className={get(styles, 'fileSize', '')}>{lyricFileInfo.sizeKB} KB</span>
                     </div>
                     <button 
-                      className={styles.removeButton}
+                      className={get(styles, 'removeButton', '')}
                       onClick={(e) => {
-                        e.stopPropagation();
+                        if (isFunction(get(e, 'stopPropagation'))) {
+                          e.stopPropagation();
+                        }
                         clearFile('lyric');
                       }}
                       title="Remove file"
@@ -116,11 +218,11 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesUploaded, onClose }) => 
                     </button>
                   </div>
                 ) : (
-                  <div className={styles.dropZone}>
-                    <div className={styles.dropIcon}>📁</div>
-                    <div className={styles.dropText}>
+                  <div className={get(styles, 'dropZone', '')}>
+                    <div className={get(styles, 'dropIcon', '')}>📁</div>
+                    <div className={get(styles, 'dropText', '')}>
                       <span>Drop JSON file or click to select</span>
-                      <small className={styles.dropHint}>Lyric timing data (.json)</small>
+                      <small className={get(styles, 'dropHint', '')}>Lyric timing data (.json)</small>
                     </div>
                   </div>
                 )}
@@ -129,34 +231,36 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesUploaded, onClose }) => 
                 ref={lyricInputRef}
                 type="file"
                 accept=".json"
-                className={styles.hiddenInput}
+                className={get(styles, 'hiddenInput', '')}
                 onChange={(e) => handleFileChange(e, 'lyric')}
               />
             </div>
           </div>
 
           {/* Audio File Section */}
-          <div className={styles.section}>
+          <div className={get(styles, 'section', '')}>
             <h3>Audio File</h3>
-            <div className={styles.fileGroup}>
+            <div className={get(styles, 'fileGroup', '')}>
               <div 
-                className={`${styles.fileInputWrapper} ${isDragOver === 'audio' ? styles.dragOver : ''} ${files.audio ? styles.hasFile : ''}`}
+                className={`${get(styles, 'fileInputWrapper', '')} ${isDragOverAudio ? get(styles, 'dragOver', '') : ''} ${hasAudioFile ? get(styles, 'hasFile', '') : ''}`}
                 onDrop={(e) => handleDrop(e, 'audio')}
                 onDragOver={(e) => handleDragOver(e, 'audio')}
                 onDragLeave={handleDragLeave}
-                onClick={() => audioInputRef.current?.click()}
+                onClick={handleAudioInputClick}
               >
-                {files.audio ? (
-                  <div className={styles.fileInfo}>
-                    <div className={styles.fileIcon}>🎵</div>
-                    <div className={styles.fileDetails}>
-                      <span className={styles.fileName}>{files.audio.name}</span>
-                      <span className={styles.fileSize}>{(files.audio.size / 1024 / 1024).toFixed(1)} MB</span>
+                {hasAudioFile && audioFileInfo ? (
+                  <div className={get(styles, 'fileInfo', '')}>
+                    <div className={get(styles, 'fileIcon', '')}>🎵</div>
+                    <div className={get(styles, 'fileDetails', '')}>
+                      <span className={get(styles, 'fileName', '')}>{audioFileInfo.name}</span>
+                      <span className={get(styles, 'fileSize', '')}>{audioFileInfo.sizeMB} MB</span>
                     </div>
                     <button 
-                      className={styles.removeButton}
+                      className={get(styles, 'removeButton', '')}
                       onClick={(e) => {
-                        e.stopPropagation();
+                        if (isFunction(get(e, 'stopPropagation'))) {
+                          e.stopPropagation();
+                        }
                         clearFile('audio');
                       }}
                       title="Remove file"
@@ -165,11 +269,11 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesUploaded, onClose }) => 
                     </button>
                   </div>
                 ) : (
-                  <div className={styles.dropZone}>
-                    <div className={styles.dropIcon}>🎵</div>
-                    <div className={styles.dropText}>
+                  <div className={get(styles, 'dropZone', '')}>
+                    <div className={get(styles, 'dropIcon', '')}>🎵</div>
+                    <div className={get(styles, 'dropText', '')}>
                       <span>Drop audio file or click to select</span>
-                      <small className={styles.dropHint}>MP3, WAV, M4A formats</small>
+                      <small className={get(styles, 'dropHint', '')}>MP3, WAV, M4A formats</small>
                     </div>
                   </div>
                 )}
@@ -178,27 +282,27 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesUploaded, onClose }) => 
                 ref={audioInputRef}
                 type="file"
                 accept="audio/*"
-                className={styles.hiddenInput}
+                className={get(styles, 'hiddenInput', '')}
                 onChange={(e) => handleFileChange(e, 'audio')}
               />
             </div>
           </div>
         </div>
 
-        <div className={styles.footer}>
-          <div className={styles.actions}>
-            <button className={styles.cancelButton} onClick={onClose}>
+        <div className={get(styles, 'footer', '')}>
+          <div className={get(styles, 'actions', '')}>
+            <button className={get(styles, 'cancelButton', '')} onClick={onClose}>
               Cancel
             </button>
             <button 
-              className={styles.uploadButton} 
+              className={get(styles, 'uploadButton', '')} 
               onClick={handleSubmit}
-              disabled={!files.lyric && !files.audio}
+              disabled={!hasLyricFile && !hasAudioFile}
             >
               Upload Files
             </button>
           </div>
-          <div className={styles.shortcuts}>
+          <div className={get(styles, 'shortcuts', '')}>
             <span><kbd>U</kbd> Upload Files</span>
             <span><kbd>I</kbd> Settings</span>
           </div>

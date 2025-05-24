@@ -1,5 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ReactPlayer from 'react-player';
+import { 
+  get, isString, isNumber, isFunction, toString, 
+  clamp, max, min, toNumber, isEmpty
+} from 'lodash';
 import styles from './AudioPlayer.module.css';
 
 export interface AudioPlayerProps {
@@ -22,12 +26,12 @@ export interface AudioPlayerProps {
  */
 const PlayPauseButton: React.FC<{ isPlaying: boolean; onClick: () => void; disabled?: boolean }> = React.memo(({ isPlaying, onClick, disabled }) => (
   <button 
-    className={`${styles.playButton} ${isPlaying ? styles.playing : ''}`}
+    className={`${get(styles, 'playButton', '')} ${isPlaying ? get(styles, 'playing', '') : ''}`}
     onClick={onClick}
     disabled={disabled}
     aria-label={isPlaying ? "Pause" : "Play"}
   >
-    <div className={styles.playIcon}>
+    <div className={get(styles, 'playIcon', '')}>
       {isPlaying ? (
         <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
           <rect x="6" y="4" width="4" height="16" rx="1"/>
@@ -46,9 +50,9 @@ const PlayPauseButton: React.FC<{ isPlaying: boolean; onClick: () => void; disab
  * Volume Control Component
  */
 const VolumeControl: React.FC<{ volume: number; onVolumeChange: (volume: number) => void; muted: boolean; onToggleMute: () => void }> = React.memo(({ volume, onVolumeChange, muted, onToggleMute }) => (
-  <div className={styles.volumeControl}>
+  <div className={get(styles, 'volumeControl', '')}>
     <button 
-      className={styles.volumeButton}
+      className={get(styles, 'volumeButton', '')}
       onClick={onToggleMute}
       aria-label={muted ? "Unmute" : "Mute"}
     >
@@ -66,22 +70,25 @@ const VolumeControl: React.FC<{ volume: number; onVolumeChange: (volume: number)
         </svg>
       )}
     </button>
-    <div className={styles.volumeSliderContainer}>
+    <div className={get(styles, 'volumeSliderContainer', '')}>
       <input
         type="range"
         min="0"
         max="1"
         step="0.05"
         value={muted ? 0 : volume}
-        onChange={(e) => onVolumeChange(parseFloat(e.target.value))}
-        className={styles.volumeSlider}
+        onChange={(e) => {
+          const newVolume = clamp(toNumber(get(e, 'target.value', 0)), 0, 1);
+          onVolumeChange(newVolume);
+        }}
+        className={get(styles, 'volumeSlider', '')}
       />
     </div>
   </div>
 ));
 
 /**
- * Progress Bar Component
+ * Progress Bar Component with lodash safety
  */
 const ProgressBar: React.FC<{ 
   currentTime: number; 
@@ -90,41 +97,51 @@ const ProgressBar: React.FC<{
   buffered?: number;
 }> = React.memo(({ currentTime, duration, onSeek, buffered = 0 }) => {
   const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
+    const safeSeconds = max([0, isNumber(seconds) ? seconds : 0]) || 0;
+    const mins = Math.floor(safeSeconds / 60);
+    const secs = Math.floor(safeSeconds % 60);
+    return `${mins}:${toString(secs).padStart(2, '0')}`;
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const percent = (e.clientX - rect.left) / rect.width;
-    onSeek(percent * duration);
+    const rect = get(e, 'currentTarget', { getBoundingClientRect: () => ({ left: 0, width: 0 }) }).getBoundingClientRect();
+    const clientX = get(e, 'clientX', 0);
+    const rectLeft = get(rect, 'left', 0);
+    const rectWidth = get(rect, 'width', 1);
+    
+    const percent = clamp((clientX - rectLeft) / rectWidth, 0, 1);
+    const seekTime = clamp(percent * duration, 0, duration);
+    onSeek(seekTime);
   };
 
-  const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
-  const bufferedProgress = duration > 0 ? (buffered / duration) * 100 : 0;
+  const safeDuration = max([0, isNumber(duration) ? duration : 0]) || 0;
+  const safeCurrentTime = clamp(isNumber(currentTime) ? currentTime : 0, 0, safeDuration);
+  const safeBuffered = clamp(isNumber(buffered) ? buffered : 0, 0, safeDuration);
+  
+  const progress = safeDuration > 0 ? (safeCurrentTime / safeDuration) * 100 : 0;
+  const bufferedProgress = safeDuration > 0 ? (safeBuffered / safeDuration) * 100 : 0;
 
   return (
-    <div className={styles.progressContainer}>
-      <span className={styles.timeDisplay}>{formatTime(currentTime)}</span>
+    <div className={get(styles, 'progressContainer', '')}>
+      <span className={get(styles, 'timeDisplay', '')}>{formatTime(safeCurrentTime)}</span>
       <div 
-        className={styles.progressBar}
+        className={get(styles, 'progressBar', '')}
         onClick={handleSeek}
       >
         <div 
-          className={styles.progressBuffered}
-          style={{ width: `${bufferedProgress}%` }}
+          className={get(styles, 'progressBuffered', '')}
+          style={{ width: `${clamp(bufferedProgress, 0, 100)}%` }}
         />
         <div 
-          className={styles.progressFilled}
-          style={{ width: `${progress}%` }}
+          className={get(styles, 'progressFilled', '')}
+          style={{ width: `${clamp(progress, 0, 100)}%` }}
         />
         <div 
-          className={styles.progressThumb}
-          style={{ left: `${progress}%` }}
+          className={get(styles, 'progressThumb', '')}
+          style={{ left: `${clamp(progress, 0, 100)}%` }}
         />
       </div>
-      <span className={styles.timeDisplay}>{formatTime(duration)}</span>
+      <span className={get(styles, 'timeDisplay', '')}>{formatTime(safeDuration)}</span>
     </div>
   );
 });
@@ -134,7 +151,7 @@ const ProgressBar: React.FC<{
  */
 const ToggleButton: React.FC<{ isVisible: boolean; onClick: () => void }> = React.memo(({ isVisible, onClick }) => (
   <button 
-    className={styles.toggleButton} 
+    className={get(styles, 'toggleButton', '')} 
     onClick={onClick}
     aria-label={isVisible ? "Hide audio player" : "Show audio player"}
     title="Press P to toggle player"
@@ -162,66 +179,101 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   const [isReady, setIsReady] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const [volume, setVolume] = useState(externalVolume);
+  const [volume, setVolume] = useState(clamp(isNumber(externalVolume) ? externalVolume : 0.8, 0, 1));
   const [muted, setMuted] = useState(false);
   const [buffered, setBuffered] = useState(0);
   const playerRef = useRef<ReactPlayer>(null);
 
-  // Keyboard event handlers
+  // Keyboard event handlers with lodash safety
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
+      const target = get(event, 'target');
+      const key = get(event, 'key', '');
+      const code = get(event, 'code', '');
+      const ctrlKey = get(event, 'ctrlKey', false);
+      const metaKey = get(event, 'metaKey', false);
+      const altKey = get(event, 'altKey', false);
+
       // Ignore if user is typing in input fields
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement) {
+      if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) {
         return;
       }
 
-      if (event.key.toLowerCase() === 'p' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      if (key.toLowerCase() === 'p' && !ctrlKey && !metaKey && !altKey) {
         event.preventDefault();
         setIsPopupVisible(prev => !prev);
-      } else if (event.code === 'Space' && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      } else if (code === 'Space' && !ctrlKey && !metaKey && !altKey) {
         event.preventDefault();
-        onTogglePlay?.();
+        if (isFunction(onTogglePlay)) onTogglePlay();
+      } else if (key === 'ArrowLeft' && !ctrlKey && !metaKey && !altKey) {
+        // Seek backward 5 seconds
+        event.preventDefault();
+        const player = get(playerRef, 'current');
+        if (player && isReady) {
+          const newTime = max([0, currentTime - 5]) || 0;
+          player.seekTo(newTime, 'seconds');
+        }
+      } else if (key === 'ArrowRight' && !ctrlKey && !metaKey && !altKey) {
+        // Seek forward 10 seconds
+        event.preventDefault();
+        const player = get(playerRef, 'current');
+        if (player && isReady) {
+          const newTime = min([duration, currentTime + 10]) || currentTime + 10;
+          player.seekTo(newTime, 'seconds');
+        }
       }
     };
 
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [onTogglePlay]);
+  }, [onTogglePlay, isReady, currentTime, duration]);
 
   const handleReady = useCallback(() => {
     setIsReady(true);
-    onReady?.();
+    if (isFunction(onReady)) onReady();
   }, [onReady]);
 
   const handleProgress = useCallback((progress: { playedSeconds: number; played: number; loadedSeconds: number }) => {
-    setCurrentTime(progress.playedSeconds);
-    setBuffered(progress.loadedSeconds);
-    onProgress?.(progress);
+    const playedSeconds = get(progress, 'playedSeconds', 0);
+    const loadedSeconds = get(progress, 'loadedSeconds', 0);
+    
+    setCurrentTime(clamp(isNumber(playedSeconds) ? playedSeconds : 0, 0, Number.MAX_SAFE_INTEGER));
+    setBuffered(clamp(isNumber(loadedSeconds) ? loadedSeconds : 0, 0, Number.MAX_SAFE_INTEGER));
+    
+    if (isFunction(onProgress)) onProgress(progress);
   }, [onProgress]);
 
   const handleDuration = useCallback((duration: number) => {
-    setDuration(duration);
+    const safeDuration = max([0, isNumber(duration) ? duration : 0]) || 0;
+    setDuration(safeDuration);
   }, []);
 
   const handleSeek = useCallback((seconds: number) => {
-    if (playerRef.current && isReady) {
-      playerRef.current.seekTo(seconds, 'seconds');
+    const player = get(playerRef, 'current');
+    if (player && isReady) {
+      const safeSeconds = clamp(isNumber(seconds) ? seconds : 0, 0, duration);
+      player.seekTo(safeSeconds, 'seconds');
     }
-  }, [isReady]);
+  }, [isReady, duration]);
 
   const handleVolumeChange = useCallback((newVolume: number) => {
-    setVolume(newVolume);
-    if (newVolume > 0) setMuted(false);
+    const safeVolume = clamp(isNumber(newVolume) ? newVolume : 0, 0, 1);
+    setVolume(safeVolume);
+    if (safeVolume > 0) setMuted(false);
   }, []);
 
   const handleToggleMute = useCallback(() => {
     setMuted(prev => !prev);
   }, []);
 
+  // Safe title and artist with lodash
+  const safeTitle = !isEmpty(title) && isString(title) ? title : 'Unknown Title';
+  const safeArtist = !isEmpty(artist) && isString(artist) ? artist : 'Unknown Artist';
+
   return (
     <>
       {/* Hidden React Player */}
-      <div className={styles.hiddenPlayer}>
+      <div className={get(styles, 'hiddenPlayer', '')}>
         <ReactPlayer
           ref={playerRef}
           url={url}
@@ -256,19 +308,19 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       {/* Modern Popup Player */}
       {isPopupVisible && (
-        <div className={styles.popupOverlay} onClick={() => setIsPopupVisible(false)}>
+        <div className={get(styles, 'popupOverlay', '')} onClick={() => setIsPopupVisible(false)}>
           <div 
-            className={styles.popupContainer}
+            className={get(styles, 'popupContainer', '')}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className={styles.playerHeader}>
-              <div className={styles.songInfo}>
-                <h3 className={styles.songTitle}>{title || 'Unknown Title'}</h3>
-                <p className={styles.artistName}>{artist || 'Unknown Artist'}</p>
+            <div className={get(styles, 'playerHeader', '')}>
+              <div className={get(styles, 'songInfo', '')}>
+                <h3 className={get(styles, 'songTitle', '')}>{safeTitle}</h3>
+                <p className={get(styles, 'artistName', '')}>{safeArtist}</p>
               </div>
               <button 
-                className={styles.closeButton}
+                className={get(styles, 'closeButton', '')}
                 onClick={() => setIsPopupVisible(false)}
                 aria-label="Close player"
               >
@@ -279,8 +331,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             </div>
 
             {/* Album Art Placeholder */}
-            <div className={styles.albumArt}>
-              <div className={styles.albumPlaceholder}>
+            <div className={get(styles, 'albumArt', '')}>
+              <div className={get(styles, 'albumPlaceholder', '')}>
                 <svg width="60" height="60" viewBox="0 0 24 24" fill="currentColor">
                   <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1" fill="none"/>
                   <circle cx="12" cy="12" r="3" fill="currentColor"/>
@@ -297,10 +349,10 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             />
 
             {/* Controls */}
-            <div className={styles.playerControls}>
+            <div className={get(styles, 'playerControls', '')}>
               <PlayPauseButton 
                 isPlaying={playing}
-                onClick={() => onTogglePlay?.()}
+                onClick={() => { if (isFunction(onTogglePlay)) onTogglePlay(); }}
                 disabled={!isReady}
               />
               
@@ -313,9 +365,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             </div>
 
             {/* Keyboard Shortcuts Info */}
-            <div className={styles.shortcutsInfo}>
+            <div className={get(styles, 'shortcutsInfo', '')}>
               <span>Space: Play/Pause</span>
               <span>P: Toggle Player</span>
+              <span>← -5s</span>
+              <span>→ +10s</span>
             </div>
           </div>
         </div>

@@ -1,4 +1,8 @@
 import React, { useCallback, useState, useRef } from 'react';
+import { 
+  get, isObject, isFunction, isString, isNumber, 
+  clamp, toNumber, toString, isEmpty
+} from 'lodash';
 import styles from './Settings.module.css';
 
 /**
@@ -17,27 +21,33 @@ const FontManager: React.FC<FontManagerProps> = ({ currentFont, onFontChange }) 
 
   // Predefined fonts (including project fonts)
   const predefinedFonts = [
+    { name: 'NVN Proxima Nova Vintage', value: '"NVN Proxima Nova Vintage", sans-serif' },
     { name: 'System Default', value: 'system-ui, -apple-system, sans-serif' },
     { name: 'Sans Serif', value: 'Arial, Helvetica, sans-serif' },
     { name: 'Serif', value: 'Georgia, Times, serif' },
     { name: 'Monospace', value: 'Monaco, Consolas, monospace' },
     { name: 'NVN Manufaktur Vintage', value: '"NVN Manufaktur Vintage", serif' },
     { name: 'NVN Neutra Vintage', value: '"NVN Neutra Vintage", sans-serif' },
-    { name: 'NVN Proxima Nova Vintage', value: '"NVN Proxima Nova Vintage", sans-serif' },
     { name: 'NVN Bebas Kai', value: '"NVN Bebas Kai", sans-serif' },
     { name: 'NVN January', value: '"NVN January", serif' },
   ];
 
   /**
-   * Handle font file upload
+   * Handle font file upload with lodash safety
    */
   const handleFontUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    if (!isObject(e)) return;
+    
+    const target = get(e, 'target');
+    const filesArray = isObject(target) ? get(target, 'files') : null;
+    const file = filesArray && get(filesArray, '[0]');
+    
+    if (!isObject(file)) return;
 
-    // Validate file type
+    // Enhanced file validation with lodash safety
+    const fileName = get(file, 'name', '');
     const validTypes = ['.ttf', '.woff', '.woff2', '.otf'];
-    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+    const fileExtension = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
     
     if (!validTypes.includes(fileExtension)) {
       alert('Please upload a valid font file (.ttf, .woff, .woff2, .otf)');
@@ -47,21 +57,27 @@ const FontManager: React.FC<FontManagerProps> = ({ currentFont, onFontChange }) 
     try {
       setIsLoadingFont(true);
       
-      // Create object URL for the font file
+      // Create object URL for the font file with safe URL handling
       const fontUrl = URL.createObjectURL(file);
-      const fontName = file.name.replace(/\.[^/.]+$/, ''); // Remove extension
+      const fontName = fileName.replace(/\.[^/.]+$/, ''); // Remove extension
       
-      // Create CSS font-face rule
+      // Enhanced FontFace creation with error handling
       const fontFace = new FontFace(fontName, `url(${fontUrl})`);
       await fontFace.load();
       
-      // Add font to document
-      document.fonts.add(fontFace);
+      // Safe document fonts access
+      const documentFonts = get(document, 'fonts');
+      if (isObject(documentFonts) && isFunction(get(documentFonts, 'add'))) {
+        documentFonts.add(fontFace);
+      }
       
       // Add to custom fonts list and select it
       const fontFamily = `"${fontName}", sans-serif`;
       setCustomFonts(prev => [...prev, fontFamily]);
-      onFontChange(fontFamily);
+      
+      if (isFunction(onFontChange)) {
+        onFontChange(fontFamily);
+      }
       
       console.log(`Successfully loaded font: ${fontName}`);
     } catch (error) {
@@ -69,17 +85,19 @@ const FontManager: React.FC<FontManagerProps> = ({ currentFont, onFontChange }) 
       alert('Failed to load font file. Please try a different file.');
     } finally {
       setIsLoadingFont(false);
-      if (fontFileRef.current) {
-        fontFileRef.current.value = '';
+      const fontInput = get(fontFileRef, 'current');
+      if (isObject(fontInput) && 'value' in fontInput) {
+        fontInput.value = '';
       }
     }
   }, [onFontChange]);
 
   /**
-   * Handle Google Fonts import
+   * Handle Google Fonts import with enhanced safety
    */
   const handleGoogleFontImport = useCallback(() => {
-    if (!googleFontUrl.trim()) return;
+    const trimmedUrl = toString(googleFontUrl).trim();
+    if (isEmpty(trimmedUrl)) return;
 
     try {
       setIsLoadingFont(true);
@@ -88,34 +106,45 @@ const FontManager: React.FC<FontManagerProps> = ({ currentFont, onFontChange }) 
       let linkElement: HTMLLinkElement;
 
       // Check if it's a Google Fonts URL
-      if (googleFontUrl.includes('fonts.googleapis.com') || googleFontUrl.includes('fonts.google.com')) {
+      if (trimmedUrl.includes('fonts.googleapis.com') || trimmedUrl.includes('fonts.google.com')) {
         // Extract font family from Google Fonts URL
-        const urlMatch = googleFontUrl.match(/family=([^&:]+)/);
+        const urlMatch = trimmedUrl.match(/family=([^&:]+)/);
         if (urlMatch) {
-          fontFamily = urlMatch[1].replace(/\+/g, ' ');
+          fontFamily = get(urlMatch, '[1]', '').replace(/\+/g, ' ');
           
-          // Create link element for Google Fonts
-          linkElement = document.createElement('link');
-          linkElement.href = googleFontUrl;
-          linkElement.rel = 'stylesheet';
-          document.head.appendChild(linkElement);
+          // Enhanced document head access
+          const documentHead = get(document, 'head');
+          if (isObject(documentHead)) {
+            linkElement = document.createElement('link');
+            linkElement.href = trimmedUrl;
+            linkElement.rel = 'stylesheet';
+            documentHead.appendChild(linkElement);
+          }
         }
       } else {
         // Treat as direct CSS import URL
-        const cssRule = `@import url('${googleFontUrl}');`;
+        const cssRule = `@import url('${trimmedUrl}');`;
         const styleElement = document.createElement('style');
         styleElement.textContent = cssRule;
-        document.head.appendChild(styleElement);
+        
+        const documentHead = get(document, 'head');
+        if (isObject(documentHead)) {
+          documentHead.appendChild(styleElement);
+        }
         
         // Try to extract font name from URL
-        const nameMatch = googleFontUrl.match(/([^/]+)\.css/);
-        fontFamily = nameMatch ? nameMatch[1].replace(/[-_]/g, ' ') : 'Imported Font';
+        const nameMatch = trimmedUrl.match(/([^/]+)\.css/);
+        fontFamily = nameMatch ? get(nameMatch, '[1]', 'Imported Font').replace(/[-_]/g, ' ') : 'Imported Font';
       }
 
-      if (fontFamily) {
+      if (!isEmpty(fontFamily)) {
         const fullFontFamily = `"${fontFamily}", sans-serif`;
         setCustomFonts(prev => [...prev, fullFontFamily]);
-        onFontChange(fullFontFamily);
+        
+        if (isFunction(onFontChange)) {
+          onFontChange(fullFontFamily);
+        }
+        
         setGoogleFontUrl('');
         console.log(`Successfully imported Google Font: ${fontFamily}`);
       }
@@ -128,11 +157,26 @@ const FontManager: React.FC<FontManagerProps> = ({ currentFont, onFontChange }) 
   }, [googleFontUrl, onFontChange]);
 
   /**
-   * Handle font selection change
+   * Handle font selection change with safety
    */
   const handleFontSelect = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    onFontChange(e.target.value);
+    if (!isObject(e)) return;
+    
+    const target = get(e, 'target');
+    const value = get(target, 'value', '');
+    
+    if (isFunction(onFontChange) && !isEmpty(value)) {
+      onFontChange(value);
+    }
   }, [onFontChange]);
+
+  // Safe click handler for font upload
+  const handleFontUploadClick = useCallback(() => {
+    const fontInput = get(fontFileRef, 'current');
+    if (isObject(fontInput) && isFunction(get(fontInput, 'click'))) {
+      fontInput.click();
+    }
+  }, []);
 
   return (
     <div className={styles.fontManager}>
@@ -182,7 +226,7 @@ const FontManager: React.FC<FontManagerProps> = ({ currentFont, onFontChange }) 
             className={styles.hiddenInput}
           />
           <button
-            onClick={() => fontFileRef.current?.click()}
+            onClick={handleFontUploadClick}
             disabled={isLoadingFont}
             className={styles.uploadButton}
           >
@@ -231,9 +275,19 @@ export interface SettingsProps {
   textShadowColor: string;
   lyricDelay: number;
   fontFamily: string;
+  fontSize: number;
+  letterSpacing: number;
+  lineHeight: number;
+  textCase: 'normal' | 'uppercase' | 'lowercase';
+  mergeSentences: boolean;
   onColorChange: (colorType: 'primaryColor' | 'secondaryColor' | 'textColor' | 'textShadowColor', color: string) => void;
   onDelayChange: (delay: number) => void;
   onFontChange: (fontFamily: string) => void;
+  onFontSizeChange: (fontSize: number) => void;
+  onLetterSpacingChange: (letterSpacing: number) => void;
+  onLineHeightChange: (lineHeight: number) => void;
+  onTextCaseChange: (textCase: 'normal' | 'uppercase' | 'lowercase') => void;
+  onMergeSentencesChange: (mergeSentences: boolean) => void;
 }
 
 export const Settings: React.FC<SettingsProps> = ({
@@ -245,157 +299,386 @@ export const Settings: React.FC<SettingsProps> = ({
   textShadowColor,
   lyricDelay,
   fontFamily,
+  fontSize,
+  letterSpacing,
+  lineHeight,
+  textCase,
+  mergeSentences,
   onColorChange,
   onDelayChange,
-  onFontChange
+  onFontChange,
+  onFontSizeChange,
+  onLetterSpacingChange,
+  onLineHeightChange,
+  onTextCaseChange,
+  onMergeSentencesChange
 }) => {
+  /**
+   * Enhanced color change handler with lodash safety
+   */
   const handleColorChange = useCallback((colorType: 'primaryColor' | 'secondaryColor' | 'textColor' | 'textShadowColor', color: string) => {
-    onColorChange(colorType, color);
+    if (isFunction(onColorChange) && isString(color)) {
+      onColorChange(colorType, color);
+    }
   }, [onColorChange]);
 
+  /**
+   * Enhanced delay change handler with lodash safety
+   */
   const handleDelayChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
+    if (!isObject(e)) return;
+    
+    const target = get(e, 'target');
+    const value = get(target, 'value', '');
+    
     // Allow empty string for clearing the input
     if (value === '') {
-      onDelayChange(0);
+      if (isFunction(onDelayChange)) {
+        onDelayChange(0);
+      }
       return;
     }
     
-    // Parse the number and allow negative values
-    const numericValue = parseInt(value, 10);
-    if (!isNaN(numericValue)) {
-      onDelayChange(numericValue);
+    // Enhanced number parsing with lodash
+    const numericValue = toNumber(value);
+    if (isNumber(numericValue) && !isNaN(numericValue) && isFunction(onDelayChange)) {
+      onDelayChange(clamp(numericValue, -5000, 5000));
     }
   }, [onDelayChange]);
+
+  /**
+   * Enhanced font size change handler
+   */
+  const handleFontSizeChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isObject(e)) return;
+    
+    const target = get(e, 'target');
+    const value = get(target, 'value', '');
+    const numericValue = toNumber(value);
+    
+    if (isNumber(numericValue) && !isNaN(numericValue) && numericValue > 0 && isFunction(onFontSizeChange)) {
+      onFontSizeChange(clamp(numericValue, 0.5, 20));
+    }
+  }, [onFontSizeChange]);
+
+  /**
+   * Enhanced letter spacing change handler
+   */
+  const handleLetterSpacingChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isObject(e)) return;
+    
+    const target = get(e, 'target');
+    const value = get(target, 'value', '');
+    const numericValue = toNumber(value);
+    
+    if (isNumber(numericValue) && !isNaN(numericValue) && isFunction(onLetterSpacingChange)) {
+      onLetterSpacingChange(clamp(numericValue, -2, 5));
+    }
+  }, [onLetterSpacingChange]);
+
+  /**
+   * Enhanced line height change handler
+   */
+  const handleLineHeightChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!isObject(e)) return;
+    
+    const target = get(e, 'target');
+    const value = get(target, 'value', '');
+    const numericValue = toNumber(value);
+    
+    if (isNumber(numericValue) && !isNaN(numericValue) && numericValue > 0 && isFunction(onLineHeightChange)) {
+      onLineHeightChange(clamp(numericValue, 0.5, 5));
+    }
+  }, [onLineHeightChange]);
+
+  /**
+   * Enhanced text case change handler
+   */
+  const handleTextCaseChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    if (!isObject(e)) return;
+    
+    const target = get(e, 'target');
+    const value = get(target, 'value', '');
+    
+    if (isString(value) && ['normal', 'uppercase', 'lowercase'].includes(value) && isFunction(onTextCaseChange)) {
+      onTextCaseChange(value as 'normal' | 'uppercase' | 'lowercase');
+    }
+  }, [onTextCaseChange]);
+
+  /**
+   * Handle merge toggle div click
+   */
+  const handleMergeToggleClick = useCallback(() => {
+    if (isFunction(onMergeSentencesChange)) {
+      onMergeSentencesChange(!mergeSentences);
+    }
+  }, [onMergeSentencesChange, mergeSentences]);
+
+  // Safe close handler
+  const handleClose = useCallback(() => {
+    if (isFunction(onClose)) {
+      onClose();
+    }
+  }, [onClose]);
+
+  // Enhanced color input handlers
+  const createColorChangeHandler = useCallback((colorType: 'primaryColor' | 'secondaryColor' | 'textColor' | 'textShadowColor') => {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (!isObject(e)) return;
+      
+      const target = get(e, 'target');
+      const value = get(target, 'value', '');
+      
+      if (isString(value) && !isEmpty(value)) {
+        handleColorChange(colorType, value);
+      }
+    };
+  }, [handleColorChange]);
 
   if (!isOpen) return null;
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
-      <div className={styles.container} onClick={(e) => e.stopPropagation()}>
-        <div className={styles.header}>
+    <div className={get(styles, 'overlay', '')} onClick={handleClose}>
+      <div 
+        className={get(styles, 'container', '')} 
+        onClick={(e) => {
+          if (isObject(e) && isFunction(get(e, 'stopPropagation'))) {
+            e.stopPropagation();
+          }
+        }}
+      >
+        <div className={get(styles, 'header', '')}>
           <h2>Lyric Animation Settings</h2>
-          <button className={styles.closeButton} onClick={onClose} title="Close Settings">
+          <button 
+            className={get(styles, 'closeButton', '')} 
+            onClick={handleClose} 
+            title="Close Settings"
+          >
             ✕
           </button>
         </div>
 
-        <div className={styles.content}>
-          {/* Colors Section */}
-          <div className={styles.section}>
-            <h3>Colors</h3>
+        <div className={get(styles, 'content', '')}>
+          {/* Font & Typography Section */}
+          <div className={get(styles, 'section', '')}>
+            <h3>🔤 Font & Typography</h3>
             
-            {/* Primary Color */}
-            <div className={styles.colorGroup}>
-              <label className={styles.colorLabel}>
-                Primary Color (Background Stripe)
-                <div className={styles.colorInputWrapper}>
-                  <div 
-                    className={styles.colorPreview}
-                    style={{ backgroundColor: primaryColor }}
-                  />
-                  <input
-                    type="color"
-                    value={primaryColor}
-                    onChange={(e) => handleColorChange('primaryColor', e.target.value)}
-                    className={styles.colorInput}
-                  />
-                  <span className={styles.colorValue}>{primaryColor}</span>
-                </div>
-              </label>
-            </div>
-
-            {/* Secondary Color */}
-            <div className={styles.colorGroup}>
-              <label className={styles.colorLabel}>
-                Secondary Color (Background Stripe)
-                <div className={styles.colorInputWrapper}>
-                  <div 
-                    className={styles.colorPreview}
-                    style={{ backgroundColor: secondaryColor }}
-                  />
-                  <input
-                    type="color"
-                    value={secondaryColor}
-                    onChange={(e) => handleColorChange('secondaryColor', e.target.value)}
-                    className={styles.colorInput}
-                  />
-                  <span className={styles.colorValue}>{secondaryColor}</span>
-                </div>
-              </label>
-            </div>
-
-            {/* Text Color */}
-            <div className={styles.colorGroup}>
-              <label className={styles.colorLabel}>
-                Text Color
-                <div className={styles.colorInputWrapper}>
-                  <div 
-                    className={styles.colorPreview}
-                    style={{ backgroundColor: textColor }}
-                  />
-                  <input
-                    type="color"
-                    value={textColor}
-                    onChange={(e) => handleColorChange('textColor', e.target.value)}
-                    className={styles.colorInput}
-                  />
-                  <span className={styles.colorValue}>{textColor}</span>
-                </div>
-              </label>
-            </div>
-
-            {/* Text Shadow Color */}
-            <div className={styles.colorGroup}>
-              <label className={styles.colorLabel}>
-                Text Shadow Color
-                <div className={styles.colorInputWrapper}>
-                  <div 
-                    className={styles.colorPreview}
-                    style={{ backgroundColor: textShadowColor }}
-                  />
-                  <input
-                    type="color"
-                    value={textShadowColor}
-                    onChange={(e) => handleColorChange('textShadowColor', e.target.value)}
-                    className={styles.colorInput}
-                  />
-                  <span className={styles.colorValue}>{textShadowColor}</span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          {/* Lyric Delay Section */}
-          <div className={styles.section}>
-            <h3>Lyric Delay</h3>
-            <div className={styles.delayGroup}>
-              <input
-                type="number"
-                value={lyricDelay}
-                onChange={handleDelayChange}
-                className={styles.delayInput}
-                min="-5000"
-                max="5000"
-                step="100"
-                placeholder="0"
-              />
-              <span className={styles.delayUnit}>ms</span>
-            </div>
-          </div>
-
-          {/* Font Management Section */}
-          <div className={styles.section}>
-            <h3>Font Settings</h3>
+            {/* Font Management */}
             <FontManager
               currentFont={fontFamily}
               onFontChange={onFontChange}
             />
+
+            {/* Typography Controls Grid */}
+            <div className={get(styles, 'typographyGrid', '')}>
+              {/* Font Size */}
+              <div className={get(styles, 'typographyGroup', '')}>
+                <label className={get(styles, 'typographyLabel', '')}>
+                  Font Size
+                  <input
+                    type="number"
+                    value={fontSize}
+                    onChange={handleFontSizeChange}
+                    className={get(styles, 'typographyInput', '')}
+                    min="0.5"
+                    max="20"
+                    step="0.1"
+                    placeholder="4.0"
+                  />
+                  <span className={get(styles, 'inputUnit', '')}>em</span>
+                </label>
+              </div>
+
+              {/* Letter Spacing */}
+              <div className={get(styles, 'typographyGroup', '')}>
+                <label className={get(styles, 'typographyLabel', '')}>
+                  Letter Spacing
+                  <input
+                    type="number"
+                    value={letterSpacing}
+                    onChange={handleLetterSpacingChange}
+                    className={get(styles, 'typographyInput', '')}
+                    min="-2"
+                    max="5"
+                    step="0.1"
+                    placeholder="0.2"
+                  />
+                  <span className={get(styles, 'inputUnit', '')}>em</span>
+                </label>
+              </div>
+
+              {/* Line Height */}
+              <div className={get(styles, 'typographyGroup', '')}>
+                <label className={get(styles, 'typographyLabel', '')}>
+                  Line Height
+                  <input
+                    type="number"
+                    value={lineHeight}
+                    onChange={handleLineHeightChange}
+                    className={get(styles, 'typographyInput', '')}
+                    min="0.5"
+                    max="5"
+                    step="0.1"
+                    placeholder="1.2"
+                  />
+                </label>
+              </div>
+
+              {/* Text Case */}
+              <div className={get(styles, 'typographyGroup', '')}>
+                <label className={get(styles, 'typographyLabel', '')}>
+                  Text Case
+                  <select
+                    value={textCase}
+                    onChange={handleTextCaseChange}
+                    className={get(styles, 'textCaseSelect', '')}
+                  >
+                    <option value="normal">Normal</option>
+                    <option value="uppercase">UPPERCASE</option>
+                    <option value="lowercase">lowercase</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Appearance Section */}
+          <div className={get(styles, 'section', '')}>
+            <h3>🎨 Appearance</h3>
+            
+            <div className={get(styles, 'colorGrid', '')}>
+              {/* Text Color */}
+              <div className={get(styles, 'colorGroup', '')}>
+                <label className={get(styles, 'colorLabel', '')}>
+                  Text Color
+                  <div className={get(styles, 'colorInputWrapper', '')}>
+                    <div 
+                      className={get(styles, 'colorPreview', '')}
+                      style={{ backgroundColor: textColor }}
+                    />
+                    <input
+                      type="color"
+                      value={textColor}
+                      onChange={createColorChangeHandler('textColor')}
+                      className={get(styles, 'colorInput', '')}
+                    />
+                    <span className={get(styles, 'colorValue', '')}>{textColor}</span>
+                  </div>
+                </label>
+              </div>
+
+              {/* Text Shadow Color */}
+              <div className={get(styles, 'colorGroup', '')}>
+                <label className={get(styles, 'colorLabel', '')}>
+                  Text Shadow
+                  <div className={get(styles, 'colorInputWrapper', '')}>
+                    <div 
+                      className={get(styles, 'colorPreview', '')}
+                      style={{ backgroundColor: textShadowColor }}
+                    />
+                    <input
+                      type="color"
+                      value={textShadowColor}
+                      onChange={createColorChangeHandler('textShadowColor')}
+                      className={get(styles, 'colorInput', '')}
+                    />
+                    <span className={get(styles, 'colorValue', '')}>{textShadowColor}</span>
+                  </div>
+                </label>
+              </div>
+
+              {/* Primary Background Color */}
+              <div className={get(styles, 'colorGroup', '')}>
+                <label className={get(styles, 'colorLabel', '')}>
+                  Background Primary
+                  <div className={get(styles, 'colorInputWrapper', '')}>
+                    <div 
+                      className={get(styles, 'colorPreview', '')}
+                      style={{ backgroundColor: primaryColor }}
+                    />
+                    <input
+                      type="color"
+                      value={primaryColor}
+                      onChange={createColorChangeHandler('primaryColor')}
+                      className={get(styles, 'colorInput', '')}
+                    />
+                    <span className={get(styles, 'colorValue', '')}>{primaryColor}</span>
+                  </div>
+                </label>
+              </div>
+
+              {/* Secondary Background Color */}
+              <div className={get(styles, 'colorGroup', '')}>
+                <label className={get(styles, 'colorLabel', '')}>
+                  Background Secondary
+                  <div className={get(styles, 'colorInputWrapper', '')}>
+                    <div 
+                      className={get(styles, 'colorPreview', '')}
+                      style={{ backgroundColor: secondaryColor }}
+                    />
+                    <input
+                      type="color"
+                      value={secondaryColor}
+                      onChange={createColorChangeHandler('secondaryColor')}
+                      className={get(styles, 'colorInput', '')}
+                    />
+                    <span className={get(styles, 'colorValue', '')}>{secondaryColor}</span>
+                  </div>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          {/* Timing Section */}
+          <div className={get(styles, 'section', '')}>
+            <h3>⏱️ Timing</h3>
+            <div className={get(styles, 'delayGroup', '')}>
+              <label className={get(styles, 'delayLabel', '')}>
+                Lyric Delay
+                <div className={get(styles, 'delayInputWrapper', '')}>
+                  <input
+                    type="number"
+                    value={lyricDelay}
+                    onChange={handleDelayChange}
+                    className={get(styles, 'delayInput', '')}
+                    min="-5000"
+                    max="5000"
+                    step="100"
+                    placeholder="0"
+                  />
+                  <span className={get(styles, 'delayUnit', '')}>ms</span>
+                </div>
+              </label>
+              <small className={get(styles, 'delayHint', '')}>
+                Positive values delay lyrics, negative values make them appear earlier
+              </small>
+            </div>
+          </div>
+
+          {/* Display Options Section */}
+          <div className={get(styles, 'section', '')}>
+            <h3>📜 Display Options</h3>
+            <div className={get(styles, 'mergeGroup', '')}>
+              <div 
+                className={get(styles, 'mergeToggle', '')}
+                onClick={handleMergeToggleClick}
+              >
+                <div className={`${get(styles, 'mergeCheckbox', '')} ${mergeSentences ? get(styles, 'checked', '') : ''}`}>
+                  {/* Checkmark will be added via CSS */}
+                </div>
+                <div>
+                  <div className={get(styles, 'mergeLabel', '')}>Merge sentences into single lines</div>
+                  <div className={get(styles, 'mergeDescription', '')}>
+                    When enabled, all words in a sentence will display together as one line with timing from first to last word
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className={styles.footer}>
-          <div className={styles.shortcuts}>
+        <div className={get(styles, 'footer', '')}>
+          <div className={get(styles, 'shortcuts', '')}>
             <span><kbd>I</kbd> Toggle Settings</span>
             <span><kbd>U</kbd> Upload Files</span>
             <span><kbd>P</kbd> Audio Player</span>

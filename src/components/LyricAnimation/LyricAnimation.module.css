@@ -128,12 +128,12 @@
 .lyricText {
   font-family: var(--font-family, 'system-ui', '-apple-system', 'sans-serif');
   font-weight: 700;
-  font-size: 8rem;
+  font-size: var(--font-size, 2.5em);
   text-align: center;
-  line-height: 1.4;
+  line-height: var(--line-height, 1.2);
   width: 100%;
   word-wrap: break-word;
-  letter-spacing: 0.06em;
+  letter-spacing: var(--letter-spacing, 0.2em);
   height: auto;
   display: flex;
   flex-wrap: wrap;
@@ -144,37 +144,38 @@
   position: relative;
   z-index: 10;
   color: var(--text-color, #1976D2);
-  transition: font-size 0.5s ease-out, line-height 0.5s ease-out, letter-spacing 0.3s ease-out;
+  transition: font-size 0.5s ease-out, line-height 0.5s ease-out, letter-spacing 0.3s ease-out, font-family 0.3s ease-out;
   transform-origin: center center;
   /* text-shadow: 
     1px 1px 2px var(--text-shadow-color, rgba(21, 101, 192, 0.08)),
     0 0 4px var(--text-shadow-color, rgba(21, 101, 192, 0.05)); */
 }
 
-.fontSmall {
-  font-size: 3.8rem !important;
-  min-height: 4.2rem !important;
+/* Only apply predefined font sizes when not using custom size */
+.fontSmall:not([style*="--font-size"]) {
+  font-size: 2rem !important;
+  min-height: 2.5rem !important;
 }
 
-.fontMedium {
-  font-size: 4.5rem !important;
-  min-height: 5rem !important;
+.fontMedium:not([style*="--font-size"]) {
+  font-size: 2.5rem !important;
+  min-height: 3rem !important;
 }
 
-.fontLarge {
-  font-size: 5.8rem !important;
-  min-height: 6.5rem !important;
+.fontLarge:not([style*="--font-size"]) {
+  font-size: 3.2rem !important;
+  min-height: 3.8rem !important;
 }
 
-.fontXLarge {
-  font-size: 7.5rem !important;
-  min-height: 8.5rem !important;
+.fontXLarge:not([style*="--font-size"]) {
+  font-size: 4rem !important;
+  min-height: 4.8rem !important;
   font-weight: 800 !important;
 }
 
 .uppercase {
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: var(--letter-spacing, 0.1em);
   font-weight: 800;
 }
 
@@ -192,7 +193,9 @@
   /* text-shadow: 
     1px 1px 3px var(--text-shadow-color, rgba(21, 101, 192, 0.12)),
     0 0 6px var(--text-shadow-color, rgba(21, 101, 192, 0.08));
-  transform: scale(1.02); */
+  */ 
+  transform: scale(1.02); 
+  transition: transform 0.3s ease; 
 }
 
 .wordHidden {
