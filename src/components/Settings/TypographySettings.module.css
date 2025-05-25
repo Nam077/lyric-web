@@ -1,0 +1,94 @@
+/* Typography Settings Styles */
+.typographyGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.typographyLabel {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+
+.typographyInput {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  padding-right: 35px; /* Space for unit label */
+}
+
+.typographyInput:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.typographyInput:focus {
+  outline: none;
+  border-color: #26C6DA;
+  box-shadow: 0 0 0 2px rgba(38, 198, 218, 0.2);
+}
+
+.typographyInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.inputUnit {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.6);
+  pointer-events: none;
+}
+
+/* Text Case Select */
+.textCaseSelect {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.textCaseSelect:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.textCaseSelect:focus {
+  outline: none;
+  border-color: #26C6DA;
+  box-shadow: 0 0 0 2px rgba(38, 198, 218, 0.2);
+}
+
+.textCaseSelect option {
+  background: #2a2a2a;
+  color: white;
+  padding: 8px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  /* Stack typography grid on mobile */
+  .typographyGrid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}

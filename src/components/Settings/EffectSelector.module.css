@@ -1,0 +1,43 @@
+/* EffectSelector component styles */
+.effectSelector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-color, #333);
+  margin-bottom: 0.25rem;
+}
+
+.select {
+  padding: 0.5rem;
+  border: 2px solid var(--border-color, #ddd);
+  border-radius: 6px;
+  font-size: 0.9rem;
+  background-color: var(--bg-color, #fff);
+  color: var(--text-color, #333);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.select:hover {
+  border-color: var(--primary-color, #007bff);
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--primary-color, #007bff);
+  box-shadow: 0 0 0 3px var(--primary-color, #007bff)20;
+}
+
+.description {
+  font-size: 0.8rem;
+  color: var(--text-muted, #666);
+  margin: 0;
+  font-style: italic;
+  line-height: 1.3;
+}

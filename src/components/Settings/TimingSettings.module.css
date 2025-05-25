@@ -1,0 +1,81 @@
+/* Timing Settings Styles */
+.delayGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.delayGroup:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.delayLabel {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.delayInputWrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.delayInput {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 0.9rem;
+  width: 100px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.delayInput:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.delayInput:focus {
+  outline: none;
+  border-color: #26C6DA;
+  box-shadow: 0 0 0 2px rgba(38, 198, 218, 0.2);
+}
+
+.delayUnit {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.delayHint {
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: rgba(255, 255, 255, 0.6);
+  font-style: normal;
+  margin-top: 4px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .delayGroup {
+    padding: 10px;
+  }
+  
+  .delayInput {
+    width: 80px;
+  }
+}

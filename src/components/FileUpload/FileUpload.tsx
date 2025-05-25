@@ -3,23 +3,28 @@ import {
   get, isObject, isFunction, 
   toNumber, clamp
 } from 'lodash';
+import { useUIStore } from '../../stores/uiStore';
+import { useFileHandlers } from '../../hooks/useFileHandlers';
 import styles from './FileUpload.module.css';
 
 interface UploadedFiles {
   lyric: File | null;
   audio: File | null;
+  font: File | null;
 }
 
-interface FileUploadProps {
-  onFilesUploaded: (files: UploadedFiles) => void;
-  onClose: () => void;
-}
-
-const FileUpload: React.FC<FileUploadProps> = ({ onFilesUploaded, onClose }) => {
-  const [files, setFiles] = useState<UploadedFiles>({ lyric: null, audio: null });
+const FileUpload: React.FC = () => {
+  const uiStore = useUIStore();
+  const { handleFilesUploaded } = useFileHandlers();
+  
+  const [files, setFiles] = useState<UploadedFiles>({ lyric: null, audio: null, font: null });
   const [isDragOver, setIsDragOver] = useState<'lyric' | 'audio' | null>(null);
   const lyricInputRef = useRef<HTMLInputElement>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
+
+  const handleClose = useCallback(() => {
+    uiStore.setShowUpload(false);
+  }, [uiStore]);
 
   const handleDrop = useCallback((e: React.DragEvent, type: 'lyric' | 'audio') => {
     // Enhanced event safety
@@ -94,10 +99,9 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesUploaded, onClose }) => 
       return;
     }
     
-    if (isFunction(onFilesUploaded)) {
-      onFilesUploaded(files);
-    }
-  }, [files, onFilesUploaded]);
+    handleFilesUploaded(files);
+    handleClose();
+  }, [files, handleFilesUploaded, handleClose]);
 
   const clearFile = useCallback((type: 'lyric' | 'audio') => {
     setFiles(prev => ({ ...prev, [type]: null }));
@@ -178,7 +182,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesUploaded, onClose }) => 
           <h2>Upload Files</h2>
           <button 
             className={get(styles, 'closeButton', '')} 
-            onClick={onClose} 
+            onClick={handleClose} 
             title="Close Upload"
           >
             ✕
@@ -291,7 +295,7 @@ const FileUpload: React.FC<FileUploadProps> = ({ onFilesUploaded, onClose }) => 
 
         <div className={get(styles, 'footer', '')}>
           <div className={get(styles, 'actions', '')}>
-            <button className={get(styles, 'cancelButton', '')} onClick={onClose}>
+            <button className={get(styles, 'cancelButton', '')} onClick={handleClose}>
               Cancel
             </button>
             <button 

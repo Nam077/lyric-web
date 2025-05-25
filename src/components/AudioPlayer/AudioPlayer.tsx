@@ -4,22 +4,8 @@ import {
   get, isString, isNumber, isFunction, toString, 
   clamp, max, min, toNumber, isEmpty
 } from 'lodash';
+import { useAudioStore } from '../../stores/audioStore';
 import styles from './AudioPlayer.module.css';
-
-export interface AudioPlayerProps {
-  url: string;
-  title?: string;
-  artist?: string;
-  onProgress?: (progress: { playedSeconds: number; played: number }) => void;
-  onReady?: () => void;
-  onPlay?: () => void;
-  onPause?: () => void;
-  onEnded?: () => void;
-  volume?: number;
-  playing?: boolean;
-  onTogglePlay?: () => void;
-  className?: string;
-}
 
 /**
  * Modern Play/Pause Button Component
@@ -162,27 +148,26 @@ const ToggleButton: React.FC<{ isVisible: boolean; onClick: () => void }> = Reac
   </button>
 ));
 
-export const AudioPlayer: React.FC<AudioPlayerProps> = ({
-  url,
-  title,
-  artist,
-  onProgress,
-  onReady,
-  onPlay,
-  onPause,
-  onEnded,
-  volume: externalVolume = 0.8,
-  playing = false,
-  onTogglePlay
-}) => {
+export const AudioPlayer: React.FC = () => {
+  // Use stores directly instead of props
+  const audioStore = useAudioStore();
+  
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
-  const [volume, setVolume] = useState(clamp(isNumber(externalVolume) ? externalVolume : 0.8, 0, 1));
+  const [volume, setVolume] = useState(0.8);
   const [muted, setMuted] = useState(false);
   const [buffered, setBuffered] = useState(0);
   const playerRef = useRef<ReactPlayer>(null);
+
+  // Get values from store
+  const {
+    currentAudioUrl: url,
+    currentSongInfo: { title, artist },
+    isPlaying: playing,
+    togglePlayback
+  } = audioStore;
 
   // Keyboard event handlers with lodash safety
   useEffect(() => {
@@ -204,7 +189,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
         setIsPopupVisible(prev => !prev);
       } else if (code === 'Space' && !ctrlKey && !metaKey && !altKey) {
         event.preventDefault();
-        if (isFunction(onTogglePlay)) onTogglePlay();
+        togglePlayback();
       } else if (key === 'ArrowLeft' && !ctrlKey && !metaKey && !altKey) {
         // Seek backward 5 seconds
         event.preventDefault();
@@ -226,12 +211,12 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [onTogglePlay, isReady, currentTime, duration]);
+  }, [togglePlayback, isReady, currentTime, duration]);
 
   const handleReady = useCallback(() => {
     setIsReady(true);
-    if (isFunction(onReady)) onReady();
-  }, [onReady]);
+    audioStore.setIsAudioReady(true);
+  }, [audioStore]);
 
   const handleProgress = useCallback((progress: { playedSeconds: number; played: number; loadedSeconds: number }) => {
     const playedSeconds = get(progress, 'playedSeconds', 0);
@@ -240,8 +225,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setCurrentTime(clamp(isNumber(playedSeconds) ? playedSeconds : 0, 0, Number.MAX_SAFE_INTEGER));
     setBuffered(clamp(isNumber(loadedSeconds) ? loadedSeconds : 0, 0, Number.MAX_SAFE_INTEGER));
     
-    if (isFunction(onProgress)) onProgress(progress);
-  }, [onProgress]);
+    // Update store with current time
+    audioStore.setCurrentTime(playedSeconds * 1000); // Convert to milliseconds
+  }, [audioStore]);
 
   const handleDuration = useCallback((duration: number) => {
     const safeDuration = max([0, isNumber(duration) ? duration : 0]) || 0;
@@ -266,6 +252,14 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     setMuted(prev => !prev);
   }, []);
 
+  const handlePlay = useCallback(() => {
+    audioStore.setIsPlaying(true);
+  }, [audioStore]);
+
+  const handlePause = useCallback(() => {
+    audioStore.setIsPlaying(false);
+  }, [audioStore]);
+
   // Safe title and artist with lodash
   const safeTitle = !isEmpty(title) && isString(title) ? title : 'Unknown Title';
   const safeArtist = !isEmpty(artist) && isString(artist) ? artist : 'Unknown Artist';
@@ -285,9 +279,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           onReady={handleReady}
           onProgress={handleProgress}
           onDuration={handleDuration}
-          onPlay={onPlay}
-          onPause={onPause}
-          onEnded={onEnded}
+          onPlay={handlePlay}
+          onPause={handlePause}
           config={{
             file: {
               attributes: {
@@ -352,7 +345,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
             <div className={get(styles, 'playerControls', '')}>
               <PlayPauseButton 
                 isPlaying={playing}
-                onClick={() => { if (isFunction(onTogglePlay)) onTogglePlay(); }}
+                onClick={togglePlayback}
                 disabled={!isReady}
               />
               

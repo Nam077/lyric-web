@@ -1,0 +1,273 @@
+/* Font Management Styles */
+.fontManager {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fontGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fontLabel {
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.fontSelect {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.fontSelect:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.fontSelect:focus {
+  outline: none;
+  border-color: #26C6DA;
+  box-shadow: 0 0 0 2px rgba(38, 198, 218, 0.2);
+}
+
+.fontSelect option {
+  background: #2a2a2a;
+  color: white;
+}
+
+.fontSelect optgroup {
+  background: #1a1a1a;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+}
+
+.fontPreview {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 12px;
+  text-align: center;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.fontPreview span {
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.fontUploadGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fontUploadWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.uploadButton {
+  background: rgba(76, 175, 80, 0.2);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #4CAF50;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.uploadButton:hover:not(:disabled) {
+  background: rgba(76, 175, 80, 0.3);
+  transform: translateY(-1px);
+}
+
+.uploadButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.uploadHint {
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: rgba(255, 255, 255, 0.5);
+  text-align: center;
+}
+
+.googleFontGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.googleFontWrapper {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.googleFontInput {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: white;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.googleFontInput:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.googleFontInput:focus {
+  outline: none;
+  border-color: #26C6DA;
+  box-shadow: 0 0 0 2px rgba(38, 198, 218, 0.2);
+}
+
+.googleFontInput::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.importButton {
+  background: rgba(33, 150, 243, 0.2);
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: #2196F3;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.importButton:hover:not(:disabled) {
+  background: rgba(33, 150, 243, 0.3);
+  transform: translateY(-1px);
+}
+
+.importButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.googleFontHint {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.googleFontHint p {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.googleFontHint a {
+  color: #26C6DA;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.googleFontHint a:hover {
+  color: #00BCD4;
+  text-decoration: underline;
+}
+
+.googleFontHint small {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  word-break: break-all;
+}
+
+.hiddenInput {
+  display: none;
+}
+
+.fontsList {
+  margin: 16px 0;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+}
+
+.fontsList h4 {
+  margin: 0 0 12px 0;
+  color: #fff;
+  font-size: 1em;
+}
+
+.fontItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  margin: 4px 0;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+}
+
+.fontItem span {
+  flex: 1;
+  font-family: var(--font-family, 'Arial');
+}
+
+.fontItem button {
+  padding: 4px 12px;
+  background: rgba(220, 53, 69, 0.8);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85em;
+  transition: background-color 0.2s;
+}
+
+.fontItem button:hover {
+  background: rgba(220, 53, 69, 1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .fontItem {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  
+  .fontItem button {
+    align-self: flex-end;
+    width: fit-content;
+  }
+}

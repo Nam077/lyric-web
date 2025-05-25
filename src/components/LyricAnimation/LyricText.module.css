@@ -1,0 +1,74 @@
+/* LyricText component styles */
+.lyricText {
+  font-family: var(--font-family, 'system-ui', '-apple-system', 'sans-serif');
+  font-weight: 700;
+  font-size: var(--font-size, 2.5em);
+  text-align: center;
+  line-height: var(--line-height, 1.4); /* Increase from 1.2 to prevent clipping */
+  width: 100%;
+  word-wrap: break-word;
+  letter-spacing: var(--letter-spacing, 0.2em);
+  height: auto;
+  min-height: 2em; /* Ensure minimum height for animations */
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  white-space: normal;
+  overflow-wrap: break-word;
+  position: relative;
+  z-index: 10;
+  color: var(--text-color, #1976D2);
+  transition: font-size 0.5s ease-out, line-height 0.5s ease-out, letter-spacing 0.3s ease-out, font-family 0.3s ease-out;
+  transform-origin: center center;
+  overflow: visible; /* Prevent clipping of animations */
+  padding: 0.5em 0; /* Add vertical padding for effects */
+}
+
+/* Only apply predefined font sizes when not using custom size */
+.fontSmall:not([style*="--font-size"]) {
+  font-size: 2rem !important;
+  min-height: 3rem !important; /* Increase minimum height */
+  line-height: 1.5 !important; /* Better line height */
+}
+
+.fontMedium:not([style*="--font-size"]) {
+  font-size: 2.5rem !important;
+  min-height: 3.5rem !important; /* Increase minimum height */
+  line-height: 1.4 !important;
+}
+
+.fontLarge:not([style*="--font-size"]) {
+  font-size: 3.2rem !important;
+  min-height: 4.5rem !important; /* Increase minimum height */
+  line-height: 1.4 !important;
+}
+
+.fontXLarge:not([style*="--font-size"]) {
+  font-size: 4rem !important;
+  min-height: 5.5rem !important; /* Increase minimum height */
+  font-weight: 800 !important;
+  line-height: 1.4 !important;
+}
+
+.uppercase {
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing, 0.1em);
+  font-weight: 800;
+}
+
+@media (max-width: 768px) {
+  .lyricText {
+    font-size: 3.4rem;
+    line-height: 1.5; /* Increase line height */
+    padding: 0.3em 0; /* Reduce padding on mobile */
+  }
+}
+
+@media (max-width: 480px) {
+  .lyricText {
+    font-size: 2.8rem;
+    line-height: 1.4; /* Better line height */
+    padding: 0.2em 0;
+  }
+}

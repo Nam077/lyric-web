@@ -1,192 +1,51 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { 
-  get, map, size, forEach, isNumber, isString, 
-  toUpper, toLower, max, set
+  get, size, forEach, isNumber, isString, set
 } from 'lodash';
 import { getCurrentLyricIndex } from '../../utils/lyricParser';
+import { useAudioStore } from '../../stores/audioStore';
+import { useAppearanceStore } from '../../stores/appearanceStore';
+import { useTypographyStore } from '../../stores/typographyStore';
+import { useProcessedLyrics } from '../../hooks/useLyricProcessor';
+import { LyricContainer } from './LyricContainer';
+import { LyricText } from './LyricText';
 import styles from './LyricAnimation.module.css';
 
-export interface WordTiming {
-  text: string;
-  startTime: number;
-  endTime: number;
-}
+export const LyricAnimation: React.FC = React.memo(() => {
+  // Use stores directly instead of props
+  const audioStore = useAudioStore();
+  const appearanceStore = useAppearanceStore();
+  const typographyStore = useTypographyStore();
+  
+  // Get processed lyrics from hook
+  const { lyrics: normalizedLyrics } = useProcessedLyrics();
+  
+  // Get values from stores
+  const {
+    currentTime,
+    isPlaying
+  } = audioStore;
+  
+  const {
+    primaryColor,
+    secondaryColor,
+    textColor,
+    textShadowColor
+  } = appearanceStore;
+  
+  const {
+    fontFamily,
+    fontSize: customFontSize,
+    letterSpacing,
+    lineHeight,
+    textCase
+  } = typographyStore;
 
-export interface LyricLine {
-  text: string;
-  words: WordTiming[];
-  startTime: number;
-  endTime: number;
-}
-
-export interface LyricAnimationProps {
-  lyrics: LyricLine[];
-  currentTime?: number;
-  isPlaying?: boolean;
-  primaryColor?: string;
-  secondaryColor?: string;
-  textColor?: string;
-  textShadowColor?: string;
-  fontSize?: 'small' | 'medium' | 'large' | 'xlarge' | number; // Support custom number
-  textCase?: 'uppercase' | 'lowercase' | 'normal'; // New text case prop
-  fontFamily?: string;
-  customFontSize?: number; // Custom font size in em
-  letterSpacing?: number; // Letter spacing in em
-  lineHeight?: number; // Line height ratio
-  onComplete?: () => void;
-}
-
-/**
- * Individual word component - memoized to prevent unnecessary re-renders
- */
-interface WordProps {
-  word: WordTiming;
-  index: number;
-  isVisible: boolean;
-  color: string;
-  textCase: 'uppercase' | 'lowercase' | 'normal';
-  lyricIndex: number;
-  isLastWord: boolean;
-}
-
-const Word: React.FC<WordProps> = React.memo(({ 
-  word, 
-  index, 
-  isVisible, 
-  color, 
-  textCase, 
-  lyricIndex, 
-  isLastWord 
-}) => {
-  const [waveActive, setWaveActive] = React.useState(false);
-
-  React.useEffect(() => {
-    if (isVisible) {
-      const timer = setTimeout(() => {
-        setWaveActive(true);
-      }, 800);
-      
-      return () => clearTimeout(timer);
-    } else {
-      setWaveActive(false);
-    }
-  }, [isVisible]);
-
-  // Use lodash for safe text transformation
-  const wordText = get(word, 'text', '');
-  let transformedText = wordText;
-  if (textCase === 'uppercase') {
-    transformedText = toUpper(wordText);
-  } else if (textCase === 'lowercase') {
-    transformedText = toLower(wordText);
-  }
-
-  return (
-    <span 
-      key={`${lyricIndex}-${index}`}
-      className={`${get(styles, 'word', '')} ${isVisible ? get(styles, 'wordVisible', '') : get(styles, 'wordHidden', '')} ${waveActive ? get(styles, 'waveActive', '') : ''}`}
-      style={{ color }}
-    >
-      {transformedText}
-      {!isLastWord && ' '}
-    </span>
-  );
-});
-
-/**
- * Lyric text container - memoized to prevent re-renders when only word visibility changes
- */
-interface LyricTextProps {
-  lyric: LyricLine;
-  lyricIndex: number;
-  visibleWords: Set<number>;
-  color: string;
-  fontSizeClass: string;
-  textCase: 'uppercase' | 'lowercase' | 'normal';
-  useCustomSize?: boolean;
-}
-
-const LyricText: React.FC<LyricTextProps> = React.memo(({ 
-  lyric, 
-  lyricIndex, 
-  visibleWords, 
-  color, 
-  fontSizeClass, 
-  textCase,
-  useCustomSize = false
-}) => (
-  <div 
-    className={`${get(styles, 'lyricText', '')} ${!useCustomSize ? fontSizeClass : ''}`}
-    style={{ color }}
-  >
-    {map(get(lyric, 'words', []), (word, index) => (
-      <Word
-        key={`${lyricIndex}-${index}`}
-        word={word}
-        index={index}
-        isVisible={visibleWords.has(index)}
-        color={color}
-        textCase={textCase}
-        lyricIndex={lyricIndex}
-        isLastWord={index === size(get(lyric, 'words', [])) - 1}
-      />
-    ))}
-  </div>
-));
-
-/**
- * Container that holds everything but doesn't re-render - memoized
- */
-interface LyricContainerProps {
-  children: React.ReactNode;
-  isVisible: boolean;
-}
-
-const LyricContainer: React.FC<LyricContainerProps> = React.memo(({ children, isVisible }) => (
-  <div className={`${get(styles, 'lyricContainer', '')} ${isVisible ? get(styles, 'visible', '') : ''}`}>
-    {children}
-  </div>
-));
-
-export const LyricAnimation: React.FC<LyricAnimationProps> = React.memo(({
-  lyrics,
-  currentTime = 0,
-  isPlaying = false,
-  primaryColor = '#26C6DA',
-  secondaryColor = '#00BCD4',
-  textColor = '#1976D2',
-  textShadowColor = '#1976D2',
-  fontSize = 'large',
-  textCase = 'normal',
-  fontFamily = 'system-ui, -apple-system, sans-serif',
-  customFontSize,
-  letterSpacing = 0.2,
-  lineHeight = 1.2,
-  onComplete
-}) => {
   const [displayState, setDisplayState] = useState({
     currentLyricIndex: -1,
     visibleWords: new Set<number>(),
     showLyrics: false
   });
-
-  // Normalize timing using lodash for safe data processing
-  const normalizedLyrics = useMemo(() => {
-    return map(lyrics, lyric => ({
-      ...lyric,
-      words: map(get(lyric, 'words', []), (word) => {
-        const minDuration = 100;
-        const startTime = get(word, 'startTime', 0);
-        const endTime = get(word, 'endTime', 0);
-        const normalizedEndTime = max([endTime, startTime + minDuration]) || startTime + minDuration;
-        
-        return {
-          ...word,
-          endTime: normalizedEndTime
-        };
-      })
-    }));
-  }, [lyrics]);
 
   // Fixed color configuration using lodash for safe property access
   const colorConfig = useMemo(() => ({
@@ -206,8 +65,8 @@ export const LyricAnimation: React.FC<LyricAnimationProps> = React.memo(({
       'xlarge': get(styles, 'fontXLarge', '')
     };
     
-    return get(sizeMap, fontSize as string, get(styles, 'fontLarge', ''));
-  }, [fontSize]);
+    return get(sizeMap, 'large', get(styles, 'fontLarge', ''));
+  }, []);
 
   // Helper function for set comparison using lodash
   const areSetsEqual = useCallback((set1: Set<number>, set2: Set<number>): boolean => {
@@ -285,16 +144,16 @@ export const LyricAnimation: React.FC<LyricAnimationProps> = React.memo(({
       });
     }
 
-    // Check completion using lodash for safe access
+    // Check completion - no onComplete callback needed since it's handled in hooks
     const lyricsLength = size(normalizedLyrics);
     const lastLyric = get(normalizedLyrics, lyricsLength - 1);
     const lastLyricEndTime = get(lastLyric, 'endTime', 0);
     
     if (audioLyricIndex >= lyricsLength - 1 && currentTime > lastLyricEndTime + 1000) {
-      if (onComplete) onComplete();
+      console.log('Lyric animation completed, but audio continues playing!');
     }
 
-  }, [normalizedLyrics, currentTime, isPlaying, onComplete, updateDisplayState, areSetsEqual]);
+  }, [normalizedLyrics, currentTime, isPlaying, updateDisplayState, areSetsEqual]);
 
   // Memoized current lyric using lodash for safe access
   const showLyrics = get(displayState, 'showLyrics', false);
@@ -349,6 +208,7 @@ export const LyricAnimation: React.FC<LyricAnimationProps> = React.memo(({
             fontSizeClass={shouldUseCustomSize ? '' : fontSizeClass}
             textCase={textCase}
             useCustomSize={shouldUseCustomSize}
+            enableWordStagger={true}
           />
         </LyricContainer>
       )}
