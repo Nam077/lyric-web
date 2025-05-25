@@ -193,7 +193,6 @@ export const useAudioStore = create<AudioState>()(
         currentSongInfo: {
           title: 'Unknown',
           artist: 'Unknown',
-          duration: 0
         },
         audioFileData: null,
       });
@@ -207,12 +206,12 @@ export const useAudioStore = create<AudioState>()(
 
     loadFromStorage: () => {
       const storageStore = useStorageStore.getState();
-      const savedData = storageStore.loadFromStorage('audio');
+      const savedData = storageStore.loadFromStorage('audio') as Partial<AudioState> | null;
       if (savedData) {
         // If we have stored audio file data, recreate the blob URL
-        if (savedData.audioFileData?.base64) {
+        if (savedData.audioFileData?.base64Data) {
           try {
-            const blobUrl = StorageManager.base64ToUrl(savedData.audioFileData.base64);
+            const blobUrl = StorageManager.base64ToUrl(savedData.audioFileData.base64Data);
             savedData.currentAudioUrl = blobUrl;
             console.log(`Restored audio file: ${savedData.audioFileData.fileName}`);
           } catch (error) {

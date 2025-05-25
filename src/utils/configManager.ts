@@ -1,7 +1,7 @@
 import { useAppearanceStore } from '../stores/appearanceStore';
 import { useAudioStore } from '../stores/audioStore';
 import { useLyricStore } from '../stores/lyricStore';
-import { useStorageStore } from '../stores/storageStore';
+import { useStorageStore, StorageManager } from '../stores/storageStore';
 import { useTypographyStore } from '../stores/typographyStore';
 import { useUIStore } from '../stores/uiStore';
 
@@ -53,7 +53,7 @@ export class ConfigManager {
 
       // 5. Clear all localStorage data as a final cleanup
       const storageStore = useStorageStore.getState();
-      storageStore.clearAllStorage();
+      storageStore.clearStorage(); // Clear all storage
 
       // 6. Small delay to ensure all async operations complete
       await new Promise(resolve => setTimeout(resolve, 100));
@@ -123,8 +123,8 @@ export class ConfigManager {
     usagePercentage: number;
   } {
     const storageStore = useStorageStore.getState();
-    const totalUsed = storageStore.getTotalStorageUsed();
-    const maxSize = storageStore.getMaxStorageSize();
+    const totalUsed = storageStore.getStorageSize();
+    const maxSize = StorageManager.getMaxStorageSize();
     const available = maxSize - totalUsed;
     const usagePercentage = (totalUsed / maxSize) * 100;
 

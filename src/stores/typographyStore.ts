@@ -222,7 +222,7 @@ export const useTypographyStore = create<TypographyState>()(
 
     loadFromStorage: () => {
       const storageStore = useStorageStore.getState();
-      const savedData = storageStore.loadFromStorage('typography');
+      const savedData = storageStore.loadFromStorage('typography') as Partial<TypographyState> | null;
       if (savedData) {
         // If we have stored font data, recreate the font-face CSS
         if (savedData.customFontData?.base64) {

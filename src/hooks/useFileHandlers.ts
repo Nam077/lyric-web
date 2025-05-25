@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useAudioStore } from '../stores/audioStore';
 import { useLyricStore } from '../stores/lyricStore';
+import type { LyricData } from '../utils/lyricParser';
 
 interface UploadedFiles {
   lyric: File | null;
@@ -19,14 +20,14 @@ export const useFileHandlers = () => {
   /**
    * Parse JSON lyric file using existing utility functions
    */
-  const parseJsonLyricFile = useCallback(async (file: File): Promise<Record<string, unknown>> => {
+  const parseJsonLyricFile = useCallback(async (file: File): Promise<LyricData> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       
       reader.onload = (e) => {
         try {
           const content = e.target?.result as string;
-          const lyricData = JSON.parse(content);
+          const lyricData = JSON.parse(content) as LyricData;
           resolve(lyricData);
         } catch {
           reject(new Error('Invalid JSON format'));

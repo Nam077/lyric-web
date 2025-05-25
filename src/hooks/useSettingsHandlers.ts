@@ -123,21 +123,6 @@ export const useSettingsHandlers = () => {
     lyricStore.setMergeSentences(!lyricStore.mergeSentences);
   }, [lyricStore]);
 
-  /**
-   * Handle merge threshold change
-   */
-  const handleMergeThresholdChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isObject(e)) return;
-    
-    const target = get(e, 'target');
-    const value = get(target, 'value', '');
-    const numericValue = toNumber(value);
-    
-    if (isNumber(numericValue) && !isNaN(numericValue)) {
-      lyricStore.setMergeThreshold(clamp(numericValue, 0.5, 5.0));
-    }
-  }, [lyricStore]);
-
   // Enhanced color input handlers
   const createColorChangeHandler = useCallback((
     colorType: 'primaryColor' | 'secondaryColor' | 'textColor' | 'textShadowColor'
@@ -163,7 +148,6 @@ export const useSettingsHandlers = () => {
     handleLineHeightChange,
     handleTextCaseChange,
     handleMergeToggleClick,
-    handleMergeThresholdChange,
     createColorChangeHandler,
   };
 };
