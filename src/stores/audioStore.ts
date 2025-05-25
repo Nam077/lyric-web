@@ -69,7 +69,7 @@ export const useAudioStore = create<AudioState>()(
     isPlaying: false,
     currentTime: 0,
     isAudioReady: false,
-    currentAudioUrl: "/SOOBIN - DANCING IN THE DARK.mp3",
+    currentAudioUrl: "/lyric-web/SOOBIN - DANCING IN THE DARK.mp3",
     currentSongInfo: {
       title: "DANCING IN THE DARK",
       artist: "SOOBIN"
@@ -189,10 +189,10 @@ export const useAudioStore = create<AudioState>()(
         isPlaying: false,
         currentTime: 0,
         isAudioReady: false,
-        currentAudioUrl: '',
+        currentAudioUrl: "/lyric-web/SOOBIN - DANCING IN THE DARK.mp3",
         currentSongInfo: {
-          title: 'Unknown',
-          artist: 'Unknown',
+          title: "DANCING IN THE DARK",
+          artist: "SOOBIN"
         },
         audioFileData: null,
       });
@@ -218,7 +218,7 @@ export const useAudioStore = create<AudioState>()(
             console.warn('Failed to restore audio file from storage:', error);
             // Remove corrupted data
             savedData.audioFileData = null;
-            savedData.currentAudioUrl = "/SOOBIN - DANCING IN THE DARK.mp3";
+            savedData.currentAudioUrl = "/lyric-web/SOOBIN - DANCING IN THE DARK.mp3";
           }
         }
         set(savedData);
