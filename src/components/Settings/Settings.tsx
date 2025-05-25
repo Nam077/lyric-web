@@ -6,7 +6,6 @@ import { TypographySettings } from './TypographySettings';
 import { AppearanceSettings } from './AppearanceSettings';
 import { TimingSettings } from './TimingSettings';
 import { DisplayOptionsSettings } from './DisplayOptionsSettings';
-import { EffectSettings } from './EffectSettings';
 import { ConfigManager } from '../ConfigManager';
 import styles from './Settings.module.css';
 
@@ -61,11 +60,6 @@ export const Settings: React.FC = () => {
           <AppearanceSettings
             createColorChangeHandler={createColorChangeHandler}
           />
-
-          {/* Effect Settings Section */}
-          <div className={get(styles, 'section', '')}>
-            <EffectSettings />
-          </div>
 
           {/* Timing Section */}
           <TimingSettings

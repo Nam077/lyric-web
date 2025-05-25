@@ -1,7 +1,7 @@
 import React from 'react';
 import { get, map, size } from 'lodash';
 import type { LyricLine } from '../../utils/lyricParser';
-import { Word, type WordEffect } from './Word';
+import { Word } from './Word';
 import styles from './LyricText.module.css';
 
 interface LyricTextProps {
@@ -12,8 +12,6 @@ interface LyricTextProps {
   fontSizeClass: string;
   textCase: 'uppercase' | 'lowercase' | 'normal';
   useCustomSize?: boolean;
-  enableWordStagger?: boolean;
-  customEffect?: WordEffect; // Optional override - if not provided, Word uses store settings
 }
 
 export const LyricText: React.FC<LyricTextProps> = React.memo(({ 
@@ -23,9 +21,7 @@ export const LyricText: React.FC<LyricTextProps> = React.memo(({
   color, 
   fontSizeClass, 
   textCase,
-  useCustomSize = false,
-  enableWordStagger = true,
-  customEffect // Only pass if explicitly provided
+  useCustomSize = false
 }) => (
   <div 
     className={`${get(styles, 'lyricText', '')} ${!useCustomSize ? fontSizeClass : ''}`}
@@ -41,8 +37,6 @@ export const LyricText: React.FC<LyricTextProps> = React.memo(({
         textCase={textCase}
         lyricIndex={lyricIndex}
         isLastWord={index === size(get(lyric, 'words', [])) - 1}
-        effect={customEffect} // Word component will use store settings if this is undefined
-        animationDelay={enableWordStagger ? index * 100 : 0}
       />
     ))}
   </div>

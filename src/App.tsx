@@ -36,6 +36,9 @@ function App() {
         useLyricStore.getState().loadFromStorage();
         useUIStore.getState().loadFromStorage();
         
+        // Ensure lyric data is properly initialized
+        useLyricStore.getState().initializeData();
+        
         console.log('✅ All stores loaded from localStorage');
       }
     };

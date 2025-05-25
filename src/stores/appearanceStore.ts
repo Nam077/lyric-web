@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { subscribeWithSelector } from 'zustand/middleware';
 import { isString } from 'lodash';
 import { useStorageStore } from './storageStore';
-import type { WordEffect } from '../components/LyricAnimation/Word';
 
 interface AppearanceColors {
   primaryColor: string;
@@ -11,57 +10,85 @@ interface AppearanceColors {
   textShadowColor: string;
 }
 
-interface EffectSettings {
-  effectMode: 'auto' | 'manual' | 'fixed';
-  effectChangeFrequency: number; // How many lyrics before effect changes (1 = every lyric, 2 = every 2nd lyric, etc.)
-  fixedEffect: WordEffect | null; // Effect to use when mode is 'fixed'
-  manualEffect: WordEffect | null; // Effect to use when mode is 'manual'
-}
-
-interface AppearanceState extends AppearanceColors, EffectSettings {
+interface AppearanceState extends AppearanceColors {
   // Actions
   setColor: (colorType: keyof AppearanceColors, color: string) => void;
+  setOpacity: (colorType: keyof AppearanceColors, opacity: number) => void;
   setColors: (colors: Partial<AppearanceColors>) => void;
-  setEffectMode: (mode: 'auto' | 'manual' | 'fixed') => void;
-  setEffectChangeFrequency: (frequency: number) => void;
-  setFixedEffect: (effect: WordEffect | null) => void;
-  setManualEffect: (effect: WordEffect | null) => void;
-  setEffectSettings: (settings: Partial<EffectSettings>) => void;
+  getHexColor: (colorType: keyof AppearanceColors) => string;
+  getOpacity: (colorType: keyof AppearanceColors) => number;
   resetColors: () => void;
-  resetEffectSettings: () => void;
-  resetAll: () => void; // Complete reset including storage
+  resetAll: () => void;
   loadFromStorage: () => void;
 }
 
 const defaultColors: AppearanceColors = {
-  primaryColor: "#FFF9C4",      // Light yellow for background stripe
-  secondaryColor: "#FFCC80",    // Lighter orange-yellow for background stripe
-  textColor: "#1E6D9A",         // Medium blue text color
-  textShadowColor: "#1565C0"    // Medium blue shadow color
+  primaryColor: "rgba(255, 249, 196, 1)",      // Light yellow for background stripe
+  secondaryColor: "rgba(255, 204, 128, 1)",    // Lighter orange-yellow for background stripe
+  textColor: "rgba(21, 1, 4, 1)",          // Medium blue text color
+  textShadowColor: "rgba(25, 9, 9, 0)"     // Medium blue shadow color
 };
 
-const defaultEffectSettings: EffectSettings = {
-  effectMode: 'auto',
-  effectChangeFrequency: 1, // Change effect every lyric (default behavior)
-  fixedEffect: null,
-  manualEffect: null
+// Helper function to convert hex to rgba
+const hexToRgba = (hex: string, opacity: number): string => {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`;
+};
+
+// Helper function to extract hex from rgba or return hex as is
+const extractHex = (color: string): string => {
+  if (color.startsWith('rgba(')) {
+    const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*[\d.]+)?\)/);
+    if (match) {
+      const [, r, g, b] = match;
+      return `#${[r, g, b].map(x => parseInt(x).toString(16).padStart(2, '0')).join('')}`;
+    }
+  }
+  return color;
+};
+
+// Helper function to extract opacity from rgba
+const extractOpacity = (color: string): number => {
+  if (color.startsWith('rgba(')) {
+    const match = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/);
+    if (match) {
+      return parseFloat(match[4]);
+    }
+  }
+  return 1;
 };
 
 export const useAppearanceStore = create<AppearanceState>()(
   subscribeWithSelector((set, get) => ({
     ...defaultColors,
-    ...defaultEffectSettings,
 
     setColor: (colorType, color) => {
       if (isString(color)) {
+        const currentOpacity = extractOpacity(get()[colorType]);
+        const newColor = hexToRgba(extractHex(color), currentOpacity);
         set({
-          [colorType]: color
+          [colorType]: newColor
         });
         // Sync to storage
         const storageStore = useStorageStore.getState();
         if (storageStore.isInitialized) {
-          storageStore.syncToStorage('appearance', { ...get(), [colorType]: color });
+          storageStore.syncToStorage('appearance', { ...get(), [colorType]: newColor });
         }
+      }
+    },
+
+    setOpacity: (colorType, opacity) => {
+      const currentHex = extractHex(get()[colorType]);
+      const newColor = hexToRgba(currentHex, opacity);
+      set({
+        [colorType]: newColor
+      });
+      // Sync to storage
+      const storageStore = useStorageStore.getState();
+      if (storageStore.isInitialized) {
+        storageStore.syncToStorage('appearance', { ...get(), [colorType]: newColor });
       }
     },
 
@@ -77,57 +104,18 @@ export const useAppearanceStore = create<AppearanceState>()(
       }
     },
 
-    setEffectMode: (mode) => {
-      set({ effectMode: mode });
-      // Sync to storage
-      const storageStore = useStorageStore.getState();
-      if (storageStore.isInitialized) {
-        storageStore.syncToStorage('appearance', { ...get(), effectMode: mode });
-      }
+    getHexColor: (colorType) => {
+      const state = get();
+      return extractHex(state[colorType]);
     },
 
-    setEffectChangeFrequency: (frequency) => {
-      const safeFrequency = Math.max(1, Math.min(10, frequency)); // Between 1 and 10
-      set({ effectChangeFrequency: safeFrequency });
-      // Sync to storage
-      const storageStore = useStorageStore.getState();
-      if (storageStore.isInitialized) {
-        storageStore.syncToStorage('appearance', { ...get(), effectChangeFrequency: safeFrequency });
-      }
-    },
-
-    setFixedEffect: (effect) => {
-      set({ fixedEffect: effect });
-      // Sync to storage
-      const storageStore = useStorageStore.getState();
-      if (storageStore.isInitialized) {
-        storageStore.syncToStorage('appearance', { ...get(), fixedEffect: effect });
-      }
-    },
-
-    setManualEffect: (effect) => {
-      set({ manualEffect: effect });
-      // Sync to storage
-      const storageStore = useStorageStore.getState();
-      if (storageStore.isInitialized) {
-        storageStore.syncToStorage('appearance', { ...get(), manualEffect: effect });
-      }
-    },
-
-    setEffectSettings: (settings) => {
-      set((state) => ({
-        ...state,
-        ...settings
-      }));
-      // Sync to storage
-      const storageStore = useStorageStore.getState();
-      if (storageStore.isInitialized) {
-        storageStore.syncToStorage('appearance', { ...get(), ...settings });
-      }
+    getOpacity: (colorType) => {
+      const state = get();
+      return extractOpacity(state[colorType]);
     },
 
     resetColors: () => {
-      set(defaultColors);
+      set({ ...defaultColors });
       // Sync to storage
       const storageStore = useStorageStore.getState();
       if (storageStore.isInitialized) {
@@ -135,17 +123,8 @@ export const useAppearanceStore = create<AppearanceState>()(
       }
     },
 
-    resetEffectSettings: () => {
-      set(defaultEffectSettings);
-      // Sync to storage
-      const storageStore = useStorageStore.getState();
-      if (storageStore.isInitialized) {
-        storageStore.syncToStorage('appearance', { ...get(), ...defaultEffectSettings });
-      }
-    },
-
     resetAll: () => {
-      set({ ...defaultColors, ...defaultEffectSettings });
+      set({ ...defaultColors });
       // Clear from storage
       const storageStore = useStorageStore.getState();
       if (storageStore.isInitialized) {
@@ -157,7 +136,7 @@ export const useAppearanceStore = create<AppearanceState>()(
       const storageStore = useStorageStore.getState();
       const savedData = storageStore.loadFromStorage('appearance');
       if (savedData) {
-        set({ ...defaultColors, ...defaultEffectSettings, ...savedData });
+        set({ ...defaultColors, ...savedData });
       }
     }
   }))

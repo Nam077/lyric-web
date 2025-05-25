@@ -31,10 +31,10 @@ interface TypographyState {
 }
 
 const defaultTypography = {
-  fontFamily: 'system-ui, -apple-system, sans-serif',
-  fontSize: 4,
-  letterSpacing: 0.2,
-  lineHeight: 1.2,
+  fontFamily: 'NVN Bebas Kai, system-ui, -apple-system, sans-serif',
+  fontSize: 7.5, // em units
+  letterSpacing: 0,
+  lineHeight: 1,
   textCase: 'normal' as const,
   customFontData: null
 };

@@ -208,7 +208,6 @@ export const LyricAnimation: React.FC = React.memo(() => {
             fontSizeClass={shouldUseCustomSize ? '' : fontSizeClass}
             textCase={textCase}
             useCustomSize={shouldUseCustomSize}
-            enableWordStagger={true}
           />
         </LyricContainer>
       )}

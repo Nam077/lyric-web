@@ -2,13 +2,13 @@
 .section {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
   padding: 8px 0;
 }
 
 .section:not(:last-child) {
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 20px;
+  padding-bottom: 24px;
   margin-bottom: 4px;
 }
 
@@ -21,7 +21,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding-bottom: 8px;
+  padding-bottom: 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -33,94 +33,284 @@
   border-radius: 2px;
 }
 
-/* Color Grid Layout */
+/* Color Grid Layout - Beautiful 2x2 Grid */
 .colorGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  gap: 16px;
 }
 
-.colorGroup {
+.colorCard {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  position: relative;
+  backdrop-filter: blur(10px);
+}
+
+.colorCard:hover {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.06));
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .colorLabel {
-  font-size: 0.9rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 600;
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  color: rgba(255, 255, 255, 0.8);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  cursor: pointer;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.colorInputWrapper {
+.colorPickerContainer {
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  transition: all 0.2s ease;
-}
-
-.colorInputWrapper:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  justify-content: center;
+  position: relative;
 }
 
 .colorPreview {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
-  flex-shrink: 0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .colorPreview:hover {
   transform: scale(1.1);
-  border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
 }
 
-.colorInput {
-  opacity: 0;
+.colorPreview:active {
+  transform: scale(1.05);
+}
+
+.colorPreviewInner {
   position: absolute;
-  pointer-events: none;
-  width: 0;
-  height: 0;
+  inset: 0;
+  background: inherit;
+  border-radius: 8px;
+}
+
+/* Color Picker Portal - New fixed positioning styles */
+.colorPickerPortal {
+  position: fixed !important;
+  z-index: 10000 !important;
+  background: rgba(25, 25, 30, 0.98) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px !important;
+  padding: 16px !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5) !important;
+  isolation: isolate;
+  max-width: 260px;
+  max-height: 340px;
+  width: 240px;
+  min-height: 320px;
+}
+
+/* Animation for portal */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.colorPickerHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.colorPickerHeader span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.closeButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Remove old colorPickerPopover styles that conflict */
+.colorPickerPopover {
+  /* Remove this old class or keep it empty for backward compatibility */
+}
+
+/* React Colorful Styles Override */
+.colorPickerPortal .react-colorful {
+  width: 200px;
+  height: 160px;
+}
+
+.colorPickerPortal .react-colorful__saturation {
+  border-radius: 8px 8px 0 0;
+  border-bottom: none;
+}
+
+.colorPickerPortal .react-colorful__hue,
+.colorPickerPortal .react-colorful__alpha {
+  height: 24px;
+  border-radius: 12px;
+  margin: 12px 0 8px 0;
+}
+
+.colorPickerPortal .react-colorful__pointer {
+  width: 18px;
+  height: 18px;
+  border: 3px solid #fff;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
 }
 
 .colorValue {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
-  background: rgba(255, 255, 255, 0.05);
-  padding: 3px 6px;
-  border-radius: 4px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.3);
+  padding: 8px 10px;
+  border-radius: 8px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  min-width: 70px;
   text-align: center;
-  flex-shrink: 0;
+  word-break: break-all;
+  line-height: 1.3;
+  backdrop-filter: blur(5px);
 }
 
-/* Responsive */
-@media (max-width: 640px) {
-  /* Stack color grid on mobile */
+/* React Color UIW Sketch Styles Override */
+.colorPickerPortal .w-color-sketch {
+  width: 208px !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.colorPickerPortal .w-color-sketch > div {
+  border-radius: 8px !important;
+}
+
+.colorPickerPortal .w-color-sketch .w-color-saturation {
+  border-radius: 8px 8px 0 0 !important;
+  height: 120px !important;
+}
+
+.colorPickerPortal .w-color-sketch .w-color-hue {
+  height: 10px !important;
+  border-radius: 5px !important;
+  margin: 6px 0 !important;
+}
+
+.colorPickerPortal .w-color-sketch .w-color-alpha {
+  height: 10px !important;
+  border-radius: 5px !important;
+  margin: 6px 0 !important;
+}
+
+.colorPickerPortal .w-color-sketch .w-color-editable-input {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: 4px !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace !important;
+  font-size: 0.7rem !important;
+  padding: 2px 4px !important;
+}
+
+/* Mobile optimization */
+@media (max-width: 768px) {
   .colorGrid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .colorCard {
+    padding: 14px;
+  }
+  
+  .colorPreview {
+    width: 45px;
+    height: 45px;
+  }
+  
+  .colorValue {
+    font-size: 0.65rem;
+    padding: 6px 8px;
+  }
+  
+  .colorPickerPortal {
+    position: fixed !important;
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-width: 280px !important;
+    width: 260px !important;
+    max-height: 400px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .colorGrid {
     gap: 10px;
   }
   
-  .colorInputWrapper {
-    padding: 8px;
+  .colorCard {
+    padding: 12px;
+    gap: 10px;
+  }
+  
+  .colorLabel {
+    font-size: 0.8rem;
+  }
+  
+  .colorPreview {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .colorPickerPortal {
+    left: 50% !important;
+    top: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    width: calc(100vw - 40px) !important;
+    max-width: 300px !important;
+    padding: 14px !important;
+  }
+  
+  .colorPickerPortal .w-color-sketch {
+    width: 100% !important;
   }
 }
