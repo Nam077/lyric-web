@@ -261,10 +261,22 @@ export const useLyricStore = create<LyricState>()(
 
     loadFromStorage: () => {
       const storageStore = useStorageStore.getState();
-      const savedData = storageStore.loadFromStorage('lyric');
+      const savedData = storageStore.loadFromStorage('lyric') as Partial<LyricState> | null;
+      
       if (savedData) {
+        // Type guard to check if savedData has the expected structure
+        const hasValidCustomData = (data: Partial<LyricState>): data is Partial<LyricState> & { customLyricData: CustomLyricData } => {
+          return Boolean(data && 
+                 typeof data === 'object' && 
+                 'customLyricData' in data && 
+                 data.customLyricData &&
+                 typeof data.customLyricData === 'object' &&
+                 'data' in data.customLyricData &&
+                 'fileName' in data.customLyricData);
+        };
+
         // If we have stored custom lyric data, restore it
-        if (savedData.customLyricData?.data) {
+        if (hasValidCustomData(savedData)) {
           try {
             const { data, fileName } = savedData.customLyricData;
             set({
@@ -274,29 +286,35 @@ export const useLyricStore = create<LyricState>()(
             console.log(`🔄 Restored custom lyric data: ${fileName}`);
             
             // Check if we also have valid cached parsed data
-            if (savedData.parsedCache) {
-              console.log(`🔄 Restored parsed lyric cache: ${savedData.parsedCache.fileName}`);
+            if ('parsedCache' in savedData && 
+                savedData.parsedCache && 
+                typeof savedData.parsedCache === 'object' && 
+                savedData.parsedCache !== null && 
+                'fileName' in savedData.parsedCache) {
+              console.log(`🔄 Restored parsed lyric cache: ${(savedData.parsedCache as ParsedLyricCache).fileName}`);
             }
           } catch (error) {
             console.warn('Failed to restore custom lyric data from storage:', error);
             // Remove corrupted data and fall back to default
             set({
-              ...savedData,
-              customLyricData: null,
-              parsedCache: null,
+              ...defaultLyricSettings,
               currentLyricData: lyricData as LyricData
             });
           }
         } else {
-          // No custom data, set default
+          // No custom data, set saved settings with default lyric data
           set({
-            ...savedData,
+            lyricDelay: savedData.lyricDelay ?? defaultLyricSettings.lyricDelay,
+            mergeSentences: savedData.mergeSentences ?? defaultLyricSettings.mergeSentences,
+            customLyricData: null,
+            parsedCache: null,
             currentLyricData: lyricData as LyricData
           });
         }
       } else {
         // No saved data, initialize with default
         set({
+          ...defaultLyricSettings,
           currentLyricData: lyricData as LyricData
         });
       }

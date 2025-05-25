@@ -5,6 +5,7 @@ import { useAppearanceStore } from '../../stores/appearanceStore';
 import styles from './Word.module.css';
 
 export type WordEffect = 
+  | 'wordAppear'
   | 'bounce' 
   | 'shake' 
   | 'pulse' 
@@ -41,7 +42,7 @@ const getEffectBySettings = (
   manualEffect: WordEffect | null
 ): WordEffect => {
   const effects: WordEffect[] = [
-    'bounce', 'shake', 'pulse', 'glow', 'flip', 
+    'wordAppear', 'bounce', 'shake', 'pulse', 'glow', 'flip', 
     'zoom', 'slide', 'rainbow', 'wave', 'float',
     'blur', 'neon'
   ];

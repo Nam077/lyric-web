@@ -7,7 +7,7 @@ import { subscribeWithSelector } from 'zustand/middleware';
 interface StoreConfig {
   storeName: string;
   keys: string[];
-  defaultValues?: Record<string, any>;
+  defaultValues?: Record<string, unknown>;
 }
 
 /**
@@ -20,8 +20,8 @@ interface StorageState {
   
   // Actions
   initializeStorage: () => Promise<void>;
-  syncToStorage: (storeName: string, data: Record<string, any>) => void;
-  loadFromStorage: (storeName: string) => Record<string, any> | null;
+  syncToStorage: (storeName: string, data: Record<string, unknown>) => void;
+  loadFromStorage: (storeName: string) => Record<string, unknown> | null;
   clearStorage: (storeName?: string) => void;
   exportSettings: () => string;
   importSettings: (jsonString: string) => boolean;
@@ -282,9 +282,9 @@ const lastSyncedData: Map<string, string> = new Map();
  * Debounced sync function with duplicate prevention
  */
 const debouncedSync = (() => {
-  const timeouts: Map<string, NodeJS.Timeout> = new Map();
+  const timeouts: Map<string, number | ReturnType<typeof setTimeout>> = new Map();
   
-  return (storeName: string, data: Record<string, any>) => {
+  return (storeName: string, data: Record<string, unknown>) => {
     // Clear existing timeout for this store
     const existingTimeout = timeouts.get(storeName);
     if (existingTimeout) {
@@ -365,7 +365,7 @@ export const useStorageStore = create<StorageState>()(
     /**
      * Sync store data to localStorage with debouncing and duplicate prevention
      */
-    syncToStorage: (storeName: string, data: Record<string, any>) => {
+    syncToStorage: (storeName: string, data: Record<string, unknown>) => {
       if (!get().isInitialized) return;
 
       try {
@@ -373,7 +373,7 @@ export const useStorageStore = create<StorageState>()(
         const config = STORE_CONFIGS.find(c => c.storeName === storeName);
         if (!config) return;
 
-        const filteredData: Record<string, any> = {};
+        const filteredData: Record<string, unknown> = {};
         config.keys.forEach(key => {
           if (key in data) {
             filteredData[key] = data[key];
@@ -430,7 +430,7 @@ export const useStorageStore = create<StorageState>()(
      */
     exportSettings: () => {
       try {
-        const allSettings: Record<string, any> = {};
+        const allSettings: Record<string, unknown> = {};
         
         STORE_CONFIGS.forEach(config => {
           const data = get().loadFromStorage(config.storeName);

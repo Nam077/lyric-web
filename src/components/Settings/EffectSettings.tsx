@@ -6,6 +6,7 @@ import styles from './EffectSettings.module.css';
 
 const EFFECT_OPTIONS: { value: WordEffect; label: string; description: string }[] = [
   { value: 'bounce', label: 'Bounce', description: 'Words bounce up and down' },
+  { value: 'wordAppear', label: 'Word Appear', description: 'Words appear with gentle fade and scale' },
   { value: 'shake', label: 'Shake', description: 'Words shake left and right' },
   { value: 'pulse', label: 'Pulse', description: 'Words scale in and out' },
   { value: 'glow', label: 'Glow', description: 'Words glow with light effect' },

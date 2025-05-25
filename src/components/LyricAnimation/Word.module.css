@@ -29,19 +29,13 @@
   animation: wordAppear 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
+/* Word appear effect - gentle fade in with scale */
+.effectWordAppear {
+  animation: wordAppear 0.8s ease-out forwards;
+}
+
 @keyframes wordAppear {
-  0% {
-    opacity: 0;
-    transform: translateY(30px) scale(0.8) rotateX(90deg);
-  }
-  50% {
-    opacity: 1;
-    transform: translateY(-5px) scale(1.1) rotateX(0deg);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1) rotateX(0deg);
-  }
+  
 }
 
 /* Simplified Effects - Slower speeds based on word timing */

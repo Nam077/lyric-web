@@ -1,10 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ReactPlayer from 'react-player';
 import { 
-  get, isString, isNumber, isFunction, toString, 
+  get, isString, isNumber, toString, 
   clamp, max, min, toNumber, isEmpty
 } from 'lodash';
 import { useAudioStore } from '../../stores/audioStore';
+import { useUIStore } from '../../stores/uiStore';
 import styles from './AudioPlayer.module.css';
 
 /**
@@ -151,8 +152,8 @@ const ToggleButton: React.FC<{ isVisible: boolean; onClick: () => void }> = Reac
 export const AudioPlayer: React.FC = () => {
   // Use stores directly instead of props
   const audioStore = useAudioStore();
+  const { showAudioPlayer, toggleAudioPlayer } = useUIStore();
   
-  const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [isReady, setIsReady] = useState(false);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -186,7 +187,7 @@ export const AudioPlayer: React.FC = () => {
 
       if (key.toLowerCase() === 'p' && !ctrlKey && !metaKey && !altKey) {
         event.preventDefault();
-        setIsPopupVisible(prev => !prev);
+        toggleAudioPlayer();
       } else if (code === 'Space' && !ctrlKey && !metaKey && !altKey) {
         event.preventDefault();
         togglePlayback();
@@ -211,7 +212,7 @@ export const AudioPlayer: React.FC = () => {
 
     document.addEventListener('keydown', handleKeyPress);
     return () => document.removeEventListener('keydown', handleKeyPress);
-  }, [togglePlayback, isReady, currentTime, duration]);
+  }, [togglePlayback, toggleAudioPlayer, isReady, currentTime, duration]);
 
   const handleReady = useCallback(() => {
     setIsReady(true);
@@ -295,13 +296,13 @@ export const AudioPlayer: React.FC = () => {
 
       {/* Toggle Button - Always visible */}
       <ToggleButton 
-        isVisible={isPopupVisible} 
-        onClick={() => setIsPopupVisible(prev => !prev)} 
+        isVisible={showAudioPlayer} 
+        onClick={toggleAudioPlayer} 
       />
 
       {/* Modern Popup Player */}
-      {isPopupVisible && (
-        <div className={get(styles, 'popupOverlay', '')} onClick={() => setIsPopupVisible(false)}>
+      {showAudioPlayer && (
+        <div className={get(styles, 'popupOverlay', '')} onClick={toggleAudioPlayer}>
           <div 
             className={get(styles, 'popupContainer', '')}
             onClick={(e) => e.stopPropagation()}
@@ -314,7 +315,7 @@ export const AudioPlayer: React.FC = () => {
               </div>
               <button 
                 className={get(styles, 'closeButton', '')}
-                onClick={() => setIsPopupVisible(false)}
+                onClick={toggleAudioPlayer}
                 aria-label="Close player"
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">

@@ -11,6 +11,7 @@ interface EffectSelectorProps {
 
 const EFFECT_OPTIONS: { value: WordEffect | 'auto'; label: string; description: string }[] = [
   { value: 'auto', label: 'Auto (Based on Index)', description: 'Automatically select effect based on lyric index' },
+  { value: 'wordAppear', label: 'Word Appear', description: 'Words appear with bouncy entrance animation' },
   { value: 'bounce', label: 'Bounce', description: 'Words bounce up and down' },
   { value: 'shake', label: 'Shake', description: 'Words shake left and right' },
   { value: 'pulse', label: 'Pulse', description: 'Words scale in and out' },
