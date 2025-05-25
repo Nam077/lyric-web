@@ -185,10 +185,7 @@ export const AudioPlayer: React.FC = () => {
         return;
       }
 
-      if (key.toLowerCase() === 'p' && !ctrlKey && !metaKey && !altKey) {
-        event.preventDefault();
-        toggleAudioPlayer();
-      } else if (code === 'Space' && !ctrlKey && !metaKey && !altKey) {
+      if (code === 'Space' && !ctrlKey && !metaKey && !altKey) {
         event.preventDefault();
         togglePlayback();
       } else if (key === 'ArrowLeft' && !ctrlKey && !metaKey && !altKey) {
